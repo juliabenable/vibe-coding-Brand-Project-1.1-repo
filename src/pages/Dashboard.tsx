@@ -13,15 +13,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  pageVariants,
-  staggerContainer,
-  staggerItem,
-  staggerItemFromLeft,
-  buttonTap,
-  blobFloat,
-  ease,
-} from "@/lib/animations";
+import { ease, staggerItemFromLeft } from "@/lib/animations";
+import { useThemedAnimations } from "@/lib/use-themed-animations";
 import { Campaign, CreatorAssignment, MOCK_CAMPAIGNS } from "@/store/campaign-store";
 
 /* ------------------------------------------------------------------ */
@@ -201,6 +194,13 @@ function CreatorAvatarStack({ creators }: { creators: CreatorAssignment[] }) {
 /*  Dashboard                                                         */
 /* ================================================================== */
 export default function Dashboard() {
+  const ta = useThemedAnimations();
+  const tPage = ta.pageVariants;
+  const tStagger = ta.staggerContainer;
+  const tItem = ta.staggerItem;
+  const tBlob = ta.blobFloat;
+  const tTap = ta.buttonTap;
+
   const activeCampaigns = MOCK_CAMPAIGNS.filter((c) => c.status === "active");
   const [activityCount, setActivityCount] = useState(4);
   const visibleActivity = MOCK_ACTIVITY.slice(0, activityCount);
@@ -210,7 +210,7 @@ export default function Dashboard() {
       className="space-y-8"
       initial="initial"
       animate="animate"
-      variants={pageVariants}
+      variants={tPage}
     >
       {/* ---------------------------------------------------------- */}
       {/*  Hero CTA — gradient with decorative blobs                 */}
@@ -224,15 +224,15 @@ export default function Dashboard() {
         {/* Decorative blobs — animated floating */}
         <motion.div
           className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[var(--brand-300)] opacity-30 blur-3xl"
-          {...blobFloat(0)}
+          {...tBlob(0)}
         />
         <motion.div
           className="absolute -bottom-16 -left-16 h-44 w-44 rounded-full bg-[var(--pink-300)] opacity-20 blur-2xl"
-          {...blobFloat(1.5)}
+          {...tBlob(1.5)}
         />
         <motion.div
           className="absolute right-1/3 top-1/2 h-32 w-32 rounded-full bg-[var(--blue-300)] opacity-15 blur-2xl"
-          {...blobFloat(3)}
+          {...tBlob(3)}
         />
 
         <div className="relative flex items-center justify-between">
@@ -268,7 +268,7 @@ export default function Dashboard() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.35, ease: ease.out }}
           >
-            <motion.div whileHover={{ scale: 1.04 }} whileTap={buttonTap}>
+            <motion.div whileHover={{ scale: 1.04 }} whileTap={tTap}>
               <Button
                 asChild
                 size="lg"
@@ -339,7 +339,7 @@ export default function Dashboard() {
               {/* Table rows */}
               <motion.div
                 className="divide-y divide-[var(--neutral-100)]"
-                variants={staggerContainer}
+                variants={tStagger}
                 initial="initial"
                 animate="animate"
               >
@@ -348,7 +348,7 @@ export default function Dashboard() {
                   const { delivered, total } = getDeliveredCount(campaign);
 
                   return (
-                    <motion.div key={campaign.id} variants={staggerItem}>
+                    <motion.div key={campaign.id} variants={tItem}>
                     <Link
                       to={`/campaigns/${campaign.id}/find-talent`}
                       className="grid grid-cols-12 gap-3 px-5 py-3.5 items-center transition-colors hover:bg-[var(--neutral-50)]"
@@ -447,7 +447,7 @@ export default function Dashboard() {
           <Card className="border-[var(--neutral-200)]">
             <motion.div
               className="divide-y divide-[var(--neutral-100)]"
-              variants={staggerContainer}
+              variants={tStagger}
               initial="initial"
               animate="animate"
             >

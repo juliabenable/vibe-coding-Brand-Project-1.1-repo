@@ -1,9 +1,12 @@
 /**
- * Shared animation variants for Framer Motion
+ * Shared animation variants for Framer Motion — THEME AWARE
  * Inspired by: Airbnb (smooth reveals), Duolingo (playful bounces),
  * mymind (elegant stagger), Linear (precision easing)
+ *
+ * Base presets remain exported for backward-compat; themed overrides via useThemedAnimations()
  */
 import type { Variants, Transition } from "framer-motion";
+import type { ThemeDefinition } from "./themes";
 
 type Easing4 = [number, number, number, number];
 
@@ -203,3 +206,159 @@ export const successBurst = {
     transition: { duration: 0.6, ease: ease.spring } as Transition,
   },
 };
+
+/* ═══════════════════════════════════════════════════════════
+   THEME-AWARE ANIMATION FACTORY
+   Each theme gets unique animation timing, springs, and motion style
+   ═══════════════════════════════════════════════════════════ */
+
+export function themedPageVariants(t: ThemeDefinition): Variants {
+  const s = t.animationSpeed;
+  // Playful: bounce in. Calm: gentle fade. Dynamic: fast snap. Editorial: cinematic.
+  const initialY = t.id === "playful" ? 24 : t.id === "dynamic" ? 6 : t.id === "editorial" ? 0 : 12;
+  const initialScale = t.id === "playful" ? 0.95 : t.id === "editorial" ? 0.98 : 1;
+
+  return {
+    initial: { opacity: 0, y: initialY, scale: initialScale },
+    animate: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.45 * s,
+        ease: t.id === "playful" ? ease.spring : t.id === "calm" ? [0.16, 1, 0.3, 1] as Easing4 : ease.out,
+      },
+    },
+    exit: {
+      opacity: 0,
+      y: -8,
+      scale: t.id === "editorial" ? 0.99 : 1,
+      transition: { duration: 0.25 * s, ease: ease.precision },
+    },
+  };
+}
+
+export function themedStaggerContainer(t: ThemeDefinition): Variants {
+  const s = t.animationSpeed;
+  return {
+    initial: {},
+    animate: {
+      transition: {
+        staggerChildren: 0.06 * s,
+        delayChildren: 0.1 * s,
+      },
+    },
+  };
+}
+
+export function themedStaggerItem(t: ThemeDefinition): Variants {
+  const s = t.animationSpeed;
+  // Each theme has different reveal style
+  const initial = (() => {
+    switch (t.id) {
+      case "dynamic": return { opacity: 0, x: -12, scale: 0.98 };
+      case "calm": return { opacity: 0, y: 8 };
+      case "playful": return { opacity: 0, y: 20, scale: 0.92, rotate: -2 };
+      case "editorial": return { opacity: 0, y: 4 };
+      default: return { opacity: 0, y: 16, scale: 0.97 };
+    }
+  })();
+
+  return {
+    initial,
+    animate: {
+      opacity: 1,
+      x: 0,
+      y: 0,
+      scale: 1,
+      rotate: 0,
+      transition: {
+        duration: 0.4 * s,
+        ease: t.id === "playful" ? ease.spring : ease.out,
+      } as Transition,
+    },
+  };
+}
+
+export function themedCardHover(t: ThemeDefinition): Variants {
+  const liftPx = t.hoverLiftPx;
+  const shadowColor = t.hoverShadowColor;
+  const rotation = t.id === "playful" ? -1 : 0;
+
+  return {
+    rest: {
+      y: 0,
+      rotate: 0,
+      boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+      transition: { duration: 0.25 * t.animationSpeed, ease: ease.precision } as Transition,
+    },
+    hover: {
+      y: -liftPx,
+      rotate: rotation,
+      boxShadow: `0 ${liftPx * 3}px ${liftPx * 8}px ${shadowColor}, 0 4px 12px rgba(0,0,0,0.06)`,
+      transition: { duration: 0.25 * t.animationSpeed, ease: ease.precision } as Transition,
+    },
+  };
+}
+
+export function themedCheckPop(t: ThemeDefinition) {
+  return {
+    initial: { scale: 0, opacity: 0 },
+    animate: {
+      scale: t.id === "playful" ? [0, 1.3, 0.85, 1.05, 1] : 1,
+      opacity: 1,
+      rotate: t.id === "playful" ? [0, 15, -5, 0] : 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: t.springStiffness,
+        damping: t.springDamping,
+      },
+    },
+    exit: {
+      scale: 0,
+      opacity: 0,
+      transition: { duration: 0.15 * t.animationSpeed },
+    },
+  };
+}
+
+export function themedBlobFloat(t: ThemeDefinition, delay: number = 0) {
+  const amplitude = t.id === "calm" ? 6 : t.id === "dynamic" ? 18 : t.id === "editorial" ? 4 : 12;
+  const duration = t.id === "calm" ? 10 : t.id === "dynamic" ? 4 : t.id === "editorial" ? 8 : 6;
+  return {
+    animate: {
+      y: [0, -amplitude, 0],
+      x: [0, amplitude * 0.5, 0],
+      scale: [1, 1 + amplitude * 0.004, 1],
+      rotate: t.id === "playful" ? [0, 3, -3, 0] : undefined,
+      transition: {
+        duration,
+        repeat: Infinity,
+        ease: [0.45, 0.05, 0.55, 0.95] as Easing4,
+        delay,
+      } as Transition,
+    },
+  };
+}
+
+export function themedButtonTap(t: ThemeDefinition) {
+  return {
+    scale: t.id === "playful" ? 0.92 : t.id === "dynamic" ? 0.95 : 0.97,
+    rotate: t.id === "playful" ? -3 : 0,
+    transition: { duration: 0.1 * t.animationSpeed } as Transition,
+  };
+}
+
+export function themedPulseRing(t: ThemeDefinition) {
+  return {
+    animate: {
+      scale: [1, 1.8, 2.5],
+      opacity: [0.6, 0.3, 0],
+      transition: {
+        duration: 2 * t.animationSpeed,
+        repeat: Infinity,
+        ease: [0.0, 0.0, 0.58, 1.0] as Easing4,
+      } as Transition,
+    },
+  };
+}

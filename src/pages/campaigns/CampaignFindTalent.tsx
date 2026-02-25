@@ -51,18 +51,12 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  pageVariants,
-  staggerContainerSlow,
-  staggerItem,
-  cardHover,
-  buttonTap,
-  checkPop,
-  pulseRing,
+  ease,
   slideInFromRight,
   successBurst,
   starBounce,
-  ease,
 } from "@/lib/animations";
+import { useThemedAnimations } from "@/lib/use-themed-animations";
 import { formatFollowers } from "@/lib/format";
 
 /* ================================================================== */
@@ -85,6 +79,7 @@ function StepIndicator({
   totalSteps: number;
   onStepClick: (step: number) => void;
 }) {
+  const { checkPop } = useThemedAnimations();
   return (
     <div className="mb-6 flex items-center justify-center gap-1">
       {Array.from({ length: totalSteps }).map((_, i) => {
@@ -522,6 +517,7 @@ const MOCK_DISCOVERABLE_CREATORS: DiscoverableCreator[] = [
 /*  AI MATCHING LOADING SCREEN                                        */
 /* ================================================================== */
 function AIMatchingScreen({ onComplete }: { onComplete: () => void }) {
+  const { pageVariants, pulseRing } = useThemedAnimations();
   const [activeStage, setActiveStage] = useState(0);
   const [alertReady, setAlertReady] = useState(false);
 
@@ -1014,6 +1010,7 @@ function StepCreatorSelection({
   onViewDetail: (creator: DiscoverableCreator) => void;
   onNext: () => void;
 }) {
+  const { pageVariants, staggerContainerSlow, staggerItem, cardHover, checkPop, buttonTap } = useThemedAnimations();
   const sortedCreators = [...creators].sort((a, b) => b.matchScore - a.matchScore);
 
   return (
@@ -1896,6 +1893,7 @@ function StepPostGallery({
   managedCreators: ManagedCreator[];
   setManagedCreators: React.Dispatch<React.SetStateAction<ManagedCreator[]>>;
 }) {
+  const { pageVariants, staggerContainerSlow, staggerItem, cardHover, buttonTap } = useThemedAnimations();
   const navigate = useNavigate();
   const [kudosCreatorId, setKudosCreatorId] = useState<string | null>(null);
   const [kudosText, setKudosText] = useState(
