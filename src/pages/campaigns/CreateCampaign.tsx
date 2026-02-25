@@ -203,6 +203,9 @@ const GOAL_TILES: {
   },
 ];
 
+// ─── Gated compensation types (MVP feature coming soon) ───
+const GATED_COMPENSATION_TYPES: CompensationType[] = ["paid", "discount", "commission_boost"];
+
 // ─── Content Niche suggested tags (grouped) ───
 const NICHE_SUGGESTIONS: { label: string; platform?: string }[] = [
   { label: "Lifestyle" }, { label: "Beauty" }, { label: "Skincare" },
@@ -512,34 +515,56 @@ function StepDetails({
               {COMPENSATION_TILES.map((tile) => {
                 const comp = draft.compensationTypes.find((c) => c.type === tile.type);
                 const active = comp?.enabled ?? false;
+                const isGated = GATED_COMPENSATION_TYPES.includes(tile.type);
                 return (
-                  <button
-                    key={tile.type}
-                    type="button"
-                    onClick={() => toggleCompensation(tile.type, !active)}
-                    className="relative flex items-center gap-3 rounded-xl px-4 py-3 transition-all"
-                    style={{
-                      backgroundColor: active ? tile.bgColor : "white",
-                      border: `2px solid ${active ? tile.borderColor : "var(--neutral-200)"}`,
-                    }}
-                  >
-                    {active && (
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full" style={{ backgroundColor: tile.color }}>
-                        <Check className="size-3 text-white" />
+                  <div key={tile.type} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => !isGated && toggleCompensation(tile.type, !active)}
+                      disabled={isGated}
+                      className={`relative flex items-center gap-3 rounded-xl px-4 py-3 transition-all ${isGated ? "opacity-60" : ""}`}
+                      style={{
+                        backgroundColor: active && !isGated ? tile.bgColor : "white",
+                        border: `2px solid ${active && !isGated ? tile.borderColor : "var(--neutral-200)"}`,
+                        pointerEvents: isGated ? "none" : "auto",
+                      }}
+                    >
+                      {active && !isGated && (
+                        <div className="flex h-5 w-5 items-center justify-center rounded-full" style={{ backgroundColor: tile.color }}>
+                          <Check className="size-3 text-white" />
+                        </div>
+                      )}
+                      <div
+                        className="flex h-9 w-9 items-center justify-center rounded-lg"
+                        style={{ backgroundColor: tile.iconBg }}
+                      >
+                        <tile.icon className="size-4" style={{ color: tile.color }} />
+                      </div>
+                      <span className="text-sm font-semibold" style={{ color: active && !isGated ? tile.color : "var(--neutral-700)" }}>
+                        {tile.label}
+                      </span>
+                    </button>
+                    {isGated && (
+                      <div className="absolute inset-0 rounded-xl bg-black/5 flex items-center justify-center">
+                        <div className="flex items-center gap-1.5 bg-white rounded-lg px-2.5 py-1.5 shadow-sm border border-[var(--neutral-200)]">
+                          <Lock className="size-3.5 text-[var(--neutral-600)]" />
+                          <span className="text-xs font-semibold text-[var(--neutral-700)]">Coming Soon</span>
+                        </div>
                       </div>
                     )}
-                    <div
-                      className="flex h-9 w-9 items-center justify-center rounded-lg"
-                      style={{ backgroundColor: tile.iconBg }}
-                    >
-                      <tile.icon className="size-4" style={{ color: tile.color }} />
-                    </div>
-                    <span className="text-sm font-semibold" style={{ color: active ? tile.color : "var(--neutral-700)" }}>
-                      {tile.label}
-                    </span>
-                  </button>
+                  </div>
                 );
               })}
+            </div>
+
+            {/* Info banner about MVP and gated features */}
+            <div className="rounded-lg border border-[var(--yellow-300)] bg-[var(--yellow-50)] p-4">
+              <div className="flex items-start gap-3">
+                <Zap className="size-4 text-[var(--yellow-700)] mt-0.5 shrink-0" />
+                <p className="text-sm text-[var(--neutral-700)]">
+                  <span className="font-semibold">MVP:</span> Gift card & product via code. Paid, discount code, and commission boost coming soon.
+                </p>
+              </div>
             </div>
 
             {/* Expanded detail inputs */}

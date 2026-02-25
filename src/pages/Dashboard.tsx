@@ -12,6 +12,16 @@ import {
   Eye,
   TrendingUp,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  pageVariants,
+  staggerContainer,
+  staggerItem,
+  staggerItemFromLeft,
+  buttonTap,
+  blobFloat,
+  ease,
+} from "@/lib/animations";
 import { Campaign, CreatorAssignment, MOCK_CAMPAIGNS } from "@/store/campaign-store";
 
 /* ------------------------------------------------------------------ */
@@ -101,35 +111,49 @@ function deriveCampaignDisplayStatus(campaign: Campaign): {
   actionLink?: string;
 } {
   const creators = campaign.creators;
-  const hasSubmitted = creators.some((c) => ["content_submitted", "content_approved"].includes(c.status));
-  const hasAccepted = creators.some((c) => ["accepted", "product_shipped", "gift_card_sent", "content_submitted", "content_approved", "posted", "complete"].includes(c.status));
   const allComplete = creators.length > 0 && creators.every((c) => c.status === "complete" || c.status === "posted");
+  const hasPosted = creators.some((c) => c.status === "posted");
+  const hasReadyToPost = creators.some((c) => ["approved", "ready_to_post"].includes(c.status));
+  const hasInReview = creators.some((c) => ["in_review", "creating_content"].includes(c.status));
+  const hasReceived = creators.some((c) => ["received", "placed_order"].includes(c.status));
+  const hasAccepted = creators.some((c) => ["accepted", "interested"].includes(c.status));
+  const hasInvited = creators.some((c) => c.status === "invited");
+  const hasRecommended = creators.some((c) => c.status === "recommended");
 
   if (campaign.status === "completed" || allComplete) {
-    return { label: "Finished", bg: "var(--green-100)", color: "var(--green-700)", border: "var(--green-300)", dot: "var(--green-500)" };
+    return { label: "Done", bg: "var(--green-100)", color: "var(--green-700)", border: "var(--green-300)", dot: "var(--green-500)" };
   }
-  if (hasSubmitted) {
+  if (hasPosted) {
+    return { label: "Posted", bg: "var(--green-100)", color: "var(--green-700)", border: "var(--green-300)", dot: "var(--green-500)" };
+  }
+  if (hasReadyToPost) {
+    return { label: "Approved", bg: "var(--green-100)", color: "var(--green-700)", border: "var(--green-300)", dot: "var(--green-500)" };
+  }
+  if (hasInReview) {
     return { label: "In Review", bg: "var(--orange-100)", color: "var(--orange-700)", border: "var(--orange-300)", dot: "var(--orange-500)" };
   }
-  if (hasAccepted) {
-    return { label: "In Creation", bg: "var(--brand-100)", color: "var(--brand-700)", border: "var(--brand-200)", dot: "var(--brand-600)" };
+  if (hasReceived) {
+    return { label: "Received / Creating", bg: "var(--brand-100)", color: "var(--brand-700)", border: "var(--brand-200)", dot: "var(--brand-600)" };
   }
-  if (campaign.status === "filled" || (creators.length > 0 && creators.some((c) => c.status === "recommended"))) {
+  if (hasAccepted) {
+    return { label: "Accepted", bg: "var(--green-100)", color: "var(--green-700)", border: "var(--green-300)", dot: "var(--green-500)" };
+  }
+  if (hasInvited) {
+    return { label: "Invited", bg: "var(--blue-100)", color: "var(--blue-700)", border: "var(--blue-300)", dot: "var(--blue-500)" };
+  }
+  if (campaign.status === "filled" || campaign.status === "creators_found" || hasRecommended) {
     return {
-      label: "Pending Creators",
-      bg: "var(--orange-100)",
-      color: "var(--orange-700)",
-      border: "var(--orange-300)",
-      dot: "var(--orange-500)",
+      label: "Creators Found",
+      bg: "var(--green-100)", color: "var(--green-700)", border: "var(--green-300)", dot: "var(--green-500)",
       actionLabel: "Select Creators",
       actionLink: `/campaigns/${campaign.id}/find-talent`,
     };
   }
-  if (creators.length > 0 && creators.some((c) => c.status === "invited")) {
-    return { label: "Recruiting", bg: "var(--blue-100)", color: "var(--blue-700)", border: "var(--blue-300)", dot: "var(--blue-500)" };
+  if (campaign.status === "waiting_for_creators") {
+    return { label: "Waiting for Creators", bg: "var(--orange-100)", color: "var(--orange-700)", border: "var(--orange-300)", dot: "var(--orange-500)" };
   }
   if (campaign.status === "draft") {
-    return { label: "Created", bg: "var(--neutral-100)", color: "var(--neutral-600)", border: "var(--neutral-300)", dot: "var(--neutral-400)" };
+    return { label: "In Creation", bg: "var(--neutral-100)", color: "var(--neutral-600)", border: "var(--neutral-300)", dot: "var(--neutral-400)" };
   }
   return { label: "Active", bg: "var(--green-100)", color: "var(--green-700)", border: "var(--green-300)", dot: "var(--green-500)" };
 }
@@ -137,7 +161,7 @@ function deriveCampaignDisplayStatus(campaign: Campaign): {
 function getDeliveredCount(campaign: Campaign): { delivered: number; total: number } {
   const total = campaign.creators.length;
   const delivered = campaign.creators.filter((c) =>
-    ["content_submitted", "content_approved", "posted", "complete"].includes(c.status)
+    ["creating_content", "in_review", "approved", "ready_to_post", "posted", "complete"].includes(c.status)
   ).length;
   return { delivered, total };
 }
@@ -182,20 +206,49 @@ export default function Dashboard() {
   const visibleActivity = MOCK_ACTIVITY.slice(0, activityCount);
 
   return (
-    <div className="space-y-8">
+    <motion.div
+      className="space-y-8"
+      initial="initial"
+      animate="animate"
+      variants={pageVariants}
+    >
       {/* ---------------------------------------------------------- */}
       {/*  Hero CTA — gradient with decorative blobs                 */}
       {/* ---------------------------------------------------------- */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-hero p-8 border border-[var(--brand-200)]">
-        {/* Decorative blobs */}
-        <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[var(--brand-300)] opacity-30 blur-3xl" />
-        <div className="absolute -bottom-16 -left-16 h-44 w-44 rounded-full bg-[var(--pink-300)] opacity-20 blur-2xl" />
-        <div className="absolute right-1/3 top-1/2 h-32 w-32 rounded-full bg-[var(--blue-300)] opacity-15 blur-2xl" />
+      <motion.div
+        className="relative overflow-hidden rounded-2xl bg-gradient-hero p-8 border border-[var(--brand-200)]"
+        initial={{ opacity: 0, y: 20, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: ease.out }}
+      >
+        {/* Decorative blobs — animated floating */}
+        <motion.div
+          className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[var(--brand-300)] opacity-30 blur-3xl"
+          {...blobFloat(0)}
+        />
+        <motion.div
+          className="absolute -bottom-16 -left-16 h-44 w-44 rounded-full bg-[var(--pink-300)] opacity-20 blur-2xl"
+          {...blobFloat(1.5)}
+        />
+        <motion.div
+          className="absolute right-1/3 top-1/2 h-32 w-32 rounded-full bg-[var(--blue-300)] opacity-15 blur-2xl"
+          {...blobFloat(3)}
+        />
 
         <div className="relative flex items-center justify-between">
-          <div className="max-w-lg">
+          <motion.div
+            className="max-w-lg"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2, ease: ease.out }}
+          >
             <div className="mb-3 flex items-center gap-2">
-              <Sparkles className="size-5 text-[var(--brand-700)]" />
+              <motion.div
+                animate={{ rotate: [0, 15, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 4 }}
+              >
+                <Sparkles className="size-5 text-[var(--brand-700)]" />
+              </motion.div>
               <span className="text-sm font-semibold text-[var(--brand-700)]">
                 Ready to collaborate?
               </span>
@@ -207,22 +260,29 @@ export default function Dashboard() {
               Find the right creators, send your brief, and start receiving
               authentic content for your brand.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="flex flex-col gap-3">
-            <Button
-              asChild
-              size="lg"
-              className="gap-2 rounded-xl bg-[var(--brand-700)] px-6 text-white hover:bg-[var(--brand-800)] transition-colors"
-            >
-              <Link to="/campaigns/create">
-                <Plus className="size-5" />
-                Create Campaign
-              </Link>
-            </Button>
-          </div>
+          <motion.div
+            className="flex flex-col gap-3"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.35, ease: ease.out }}
+          >
+            <motion.div whileHover={{ scale: 1.04 }} whileTap={buttonTap}>
+              <Button
+                asChild
+                size="lg"
+                className="gap-2 rounded-xl bg-[var(--brand-700)] px-6 text-white hover:bg-[var(--brand-800)] transition-colors"
+              >
+                <Link to="/campaigns/create">
+                  <Plus className="size-5" />
+                  Create Campaign
+                </Link>
+              </Button>
+            </motion.div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ---------------------------------------------------------- */}
       {/*  Side-by-side: Active Campaigns + Recent Activity           */}
@@ -277,14 +337,19 @@ export default function Dashboard() {
               </div>
 
               {/* Table rows */}
-              <div className="divide-y divide-[var(--neutral-100)]">
+              <motion.div
+                className="divide-y divide-[var(--neutral-100)]"
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
                 {activeCampaigns.map((campaign) => {
                   const status = deriveCampaignDisplayStatus(campaign);
                   const { delivered, total } = getDeliveredCount(campaign);
 
                   return (
+                    <motion.div key={campaign.id} variants={staggerItem}>
                     <Link
-                      key={campaign.id}
                       to={`/campaigns/${campaign.id}/find-talent`}
                       className="grid grid-cols-12 gap-3 px-5 py-3.5 items-center transition-colors hover:bg-[var(--neutral-50)]"
                     >
@@ -360,9 +425,10 @@ export default function Dashboard() {
                         )}
                       </div>
                     </Link>
+                    </motion.div>
                   );
                 })}
-              </div>
+              </motion.div>
             </Card>
           )}
         </div>
@@ -379,19 +445,27 @@ export default function Dashboard() {
           </div>
 
           <Card className="border-[var(--neutral-200)]">
-            <div className="divide-y divide-[var(--neutral-100)]">
+            <motion.div
+              className="divide-y divide-[var(--neutral-100)]"
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
+              <AnimatePresence>
               {visibleActivity.map((item) => (
+                <motion.div key={item.id} variants={staggerItemFromLeft} layout>
                 <Link
-                  key={item.id}
                   to={item.link}
                   className="flex items-start gap-3 px-4 py-3.5 transition-colors hover:bg-[var(--neutral-50)]"
                 >
-                  <div
+                  <motion.div
                     className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base"
                     style={{ backgroundColor: item.emojiBg }}
+                    whileHover={{ scale: 1.15, rotate: 5 }}
+                    transition={{ type: "spring", stiffness: 400 }}
                   >
                     {item.emoji}
-                  </div>
+                  </motion.div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
@@ -413,8 +487,10 @@ export default function Dashboard() {
                     )}
                   </div>
                 </Link>
+                </motion.div>
               ))}
-            </div>
+              </AnimatePresence>
+            </motion.div>
 
             {activityCount < MOCK_ACTIVITY.length && (
               <div className="border-t border-[var(--neutral-100)] px-4 py-3 text-center">
@@ -433,6 +509,6 @@ export default function Dashboard() {
           </Card>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -47,13 +47,14 @@ const statusStyles: Record<
 > = {
   recommended: { label: "Recommended", className: "bg-[var(--brand-100)] text-[var(--brand-800)]", dotColor: "bg-[var(--brand-700)]" },
   invited: { label: "Invited", className: "bg-[var(--blue-100)] text-[var(--blue-700)]", dotColor: "bg-[var(--blue-500)]" },
-  applied: { label: "Applied", className: "bg-[var(--orange-100)] text-[var(--orange-700)]", dotColor: "bg-[var(--orange-500)]" },
+  interested: { label: "Interested", className: "bg-[var(--orange-100)] text-[var(--orange-700)]", dotColor: "bg-[var(--orange-500)]" },
   accepted: { label: "Accepted", className: "bg-[var(--green-100)] text-[var(--green-700)]", dotColor: "bg-[var(--green-500)]" },
-  negotiating: { label: "Negotiating", className: "bg-[var(--orange-100)] text-[var(--orange-700)]", dotColor: "bg-[var(--orange-500)]" },
-  product_shipped: { label: "Shipped", className: "bg-[var(--blue-100)] text-[var(--blue-700)]", dotColor: "bg-[var(--blue-500)]" },
-  gift_card_sent: { label: "Gift Card Sent", className: "bg-[var(--blue-100)] text-[var(--blue-700)]", dotColor: "bg-[var(--blue-500)]" },
-  content_submitted: { label: "Content Ready", className: "bg-[var(--brand-300)] text-[var(--brand-900)]", dotColor: "bg-[var(--brand-700)]" },
-  content_approved: { label: "Approved", className: "bg-[var(--green-100)] text-[var(--green-700)]", dotColor: "bg-[var(--green-500)]" },
+  placed_order: { label: "Placed Order", className: "bg-[var(--orange-100)] text-[var(--orange-700)]", dotColor: "bg-[var(--orange-500)]" },
+  received: { label: "Received", className: "bg-[var(--blue-100)] text-[var(--blue-700)]", dotColor: "bg-[var(--blue-500)]" },
+  creating_content: { label: "Creating Content", className: "bg-[var(--brand-300)] text-[var(--brand-900)]", dotColor: "bg-[var(--brand-700)]" },
+  in_review: { label: "In Review", className: "bg-[var(--orange-100)] text-[var(--orange-700)]", dotColor: "bg-[var(--orange-500)]" },
+  approved: { label: "Approved", className: "bg-[var(--green-100)] text-[var(--green-700)]", dotColor: "bg-[var(--green-500)]" },
+  ready_to_post: { label: "Ready to Post", className: "bg-[var(--blue-100)] text-[var(--blue-700)]", dotColor: "bg-[var(--blue-500)]" },
   posted: { label: "Posted", className: "bg-[var(--green-100)] text-[var(--green-700)]", dotColor: "bg-[var(--green-500)]" },
   complete: { label: "Complete", className: "bg-[var(--green-100)] text-[var(--green-700)]", dotColor: "bg-[var(--green-500)]" },
   declined: { label: "Declined", className: "bg-[var(--red-100)] text-[var(--red-700)]", dotColor: "bg-[var(--red-500)]" },
@@ -89,7 +90,7 @@ function BudgetTracker({ campaign }: { campaign: Campaign }) {
         : "bg-[var(--green-500)]";
 
   const activeCreators = campaign.creators.filter((c) => c.status !== "declined" && c.status !== "recommended");
-  const acceptedCreators = campaign.creators.filter((c) => ["accepted", "product_shipped", "gift_card_sent", "content_submitted", "content_approved", "posted", "complete"].includes(c.status));
+  const acceptedCreators = campaign.creators.filter((c) => ["accepted", "placed_order", "received", "creating_content", "in_review", "approved", "ready_to_post", "posted", "complete"].includes(c.status));
   const postedCreators = campaign.creators.filter((c) => c.status === "posted" || c.status === "complete");
 
   return (
@@ -564,7 +565,7 @@ export default function CampaignDetail() {
 
   // Metric color coding
   const acceptedCount = campaign.creators.filter(
-    (c) => ["accepted", "product_shipped", "gift_card_sent", "content_submitted", "content_approved", "posted", "complete"].includes(c.status)
+    (c) => ["accepted", "placed_order", "received", "creating_content", "in_review", "approved", "ready_to_post", "posted", "complete"].includes(c.status)
   ).length;
   const contentCount = campaign.creators.flatMap((c) => c.contentSubmissions).length;
   const postedCount = campaign.creators.filter((c) => c.status === "posted" || c.status === "complete").length;

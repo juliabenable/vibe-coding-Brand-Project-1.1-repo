@@ -15,35 +15,49 @@ function deriveCampaignDisplayStatus(campaign: Campaign): {
   actionLink?: string;
 } {
   const creators = campaign.creators;
-  const hasSubmitted = creators.some((c) => ["content_submitted", "content_approved"].includes(c.status));
-  const hasAccepted = creators.some((c) => ["accepted", "product_shipped", "gift_card_sent", "content_submitted", "content_approved", "posted", "complete"].includes(c.status));
   const allComplete = creators.length > 0 && creators.every((c) => c.status === "complete" || c.status === "posted");
+  const hasPosted = creators.some((c) => c.status === "posted");
+  const hasReadyToPost = creators.some((c) => ["approved", "ready_to_post"].includes(c.status));
+  const hasInReview = creators.some((c) => ["in_review", "creating_content"].includes(c.status));
+  const hasReceived = creators.some((c) => ["received", "placed_order"].includes(c.status));
+  const hasAccepted = creators.some((c) => ["accepted", "interested"].includes(c.status));
+  const hasInvited = creators.some((c) => c.status === "invited");
+  const hasRecommended = creators.some((c) => c.status === "recommended");
 
   if (campaign.status === "completed" || allComplete) {
-    return { label: "Finished", bg: "var(--green-100)", color: "var(--green-700)", border: "var(--green-300)", dot: "var(--green-500)" };
+    return { label: "Done", bg: "var(--green-100)", color: "var(--green-700)", border: "var(--green-300)", dot: "var(--green-500)" };
   }
-  if (hasSubmitted) {
+  if (hasPosted) {
+    return { label: "Posted", bg: "var(--green-100)", color: "var(--green-700)", border: "var(--green-300)", dot: "var(--green-500)" };
+  }
+  if (hasReadyToPost) {
+    return { label: "Approved", bg: "var(--green-100)", color: "var(--green-700)", border: "var(--green-300)", dot: "var(--green-500)" };
+  }
+  if (hasInReview) {
     return { label: "In Review", bg: "var(--orange-100)", color: "var(--orange-700)", border: "var(--orange-300)", dot: "var(--orange-500)" };
   }
-  if (hasAccepted) {
-    return { label: "In Creation", bg: "var(--brand-100)", color: "var(--brand-700)", border: "var(--brand-200)", dot: "var(--brand-600)" };
+  if (hasReceived) {
+    return { label: "Received / Creating", bg: "var(--brand-100)", color: "var(--brand-700)", border: "var(--brand-200)", dot: "var(--brand-600)" };
   }
-  if (campaign.status === "filled" || (creators.length > 0 && creators.some((c) => c.status === "recommended"))) {
+  if (hasAccepted) {
+    return { label: "Accepted", bg: "var(--green-100)", color: "var(--green-700)", border: "var(--green-300)", dot: "var(--green-500)" };
+  }
+  if (hasInvited) {
+    return { label: "Invited", bg: "var(--blue-100)", color: "var(--blue-700)", border: "var(--blue-300)", dot: "var(--blue-500)" };
+  }
+  if (campaign.status === "filled" || campaign.status === "creators_found" || hasRecommended) {
     return {
-      label: "Pending Creators",
-      bg: "var(--orange-100)",
-      color: "var(--orange-700)",
-      border: "var(--orange-300)",
-      dot: "var(--orange-500)",
+      label: "Creators Found",
+      bg: "var(--green-100)", color: "var(--green-700)", border: "var(--green-300)", dot: "var(--green-500)",
       actionLabel: "Select Creators",
       actionLink: `/campaigns/${campaign.id}/find-talent`,
     };
   }
-  if (creators.length > 0 && creators.some((c) => c.status === "invited")) {
-    return { label: "Recruiting", bg: "var(--blue-100)", color: "var(--blue-700)", border: "var(--blue-300)", dot: "var(--blue-500)" };
+  if (campaign.status === "waiting_for_creators") {
+    return { label: "Waiting for Creators", bg: "var(--orange-100)", color: "var(--orange-700)", border: "var(--orange-300)", dot: "var(--orange-500)" };
   }
   if (campaign.status === "draft") {
-    return { label: "Created", bg: "var(--neutral-100)", color: "var(--neutral-600)", border: "var(--neutral-300)", dot: "var(--neutral-400)" };
+    return { label: "In Creation", bg: "var(--neutral-100)", color: "var(--neutral-600)", border: "var(--neutral-300)", dot: "var(--neutral-400)" };
   }
   return { label: "Active", bg: "var(--green-100)", color: "var(--green-700)", border: "var(--green-300)", dot: "var(--green-500)" };
 }
@@ -51,7 +65,7 @@ function deriveCampaignDisplayStatus(campaign: Campaign): {
 function getDeliveredCount(campaign: Campaign): { delivered: number; total: number } {
   const total = campaign.creators.length;
   const delivered = campaign.creators.filter((c) =>
-    ["content_submitted", "content_approved", "posted", "complete"].includes(c.status)
+    ["creating_content", "in_review", "approved", "ready_to_post", "posted", "complete"].includes(c.status)
   ).length;
   return { delivered, total };
 }

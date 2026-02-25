@@ -1,4 +1,4 @@
-// Campaign data types and store — based on Brand Portal v2 spec
+// Campaign data types and store — based on Brand Portal v3 spec
 
 export type CampaignMode = "open" | "targeted" | "debut";
 export type CampaignGoal = "awareness" | "sales" | "product_launch" | "ugc" | "word_of_mouth" | "community";
@@ -11,7 +11,7 @@ export type ContentFormat =
   | "benable_post";
 export type BudgetType = "spend_cap" | "product_inventory" | "flexible" | "spend_cap_and_inventory";
 export type CompensationType = "gifted" | "gift_card" | "discount" | "paid" | "commission_boost";
-export type CampaignStatus = "draft" | "active" | "filled" | "completed";
+export type CampaignStatus = "draft" | "active" | "filled" | "completed" | "waiting_for_creators" | "creators_found";
 export type CreatorCountTarget = "5-15" | "15-30" | "30+";
 export type CreatorType = "any" | "pico" | "nano" | "micro";
 
@@ -141,16 +141,43 @@ export const emptyCampaignDraft: CampaignDraft = {
 export type CreatorStatus =
   | "recommended"
   | "invited"
-  | "applied"
+  | "interested"
   | "accepted"
-  | "negotiating"
-  | "product_shipped"
-  | "gift_card_sent"
-  | "content_submitted"
-  | "content_approved"
+  | "placed_order"
+  | "received"
+  | "creating_content"
+  | "in_review"
+  | "approved"
+  | "ready_to_post"
   | "posted"
   | "complete"
   | "declined";
+
+// V3 Status Flow & Labels
+export const V3_STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
+  in_creation: { label: "In Creation", color: "var(--brand-700)", bg: "var(--brand-100)" },
+  waiting_for_creators: { label: "Waiting for Creators", color: "var(--orange-700)", bg: "var(--orange-100)" },
+  creators_found: { label: "Creators Found", color: "var(--green-700)", bg: "var(--green-100)" },
+  invited: { label: "Invited", color: "var(--blue-700)", bg: "var(--blue-100)" },
+  accepted: { label: "Accepted", color: "var(--green-700)", bg: "var(--green-100)" },
+  placed_order: { label: "Placed Order", color: "var(--orange-700)", bg: "var(--orange-100)" },
+  received: { label: "Received", color: "var(--brand-700)", bg: "var(--brand-100)" },
+  creating_content: { label: "Creating Content", color: "var(--brand-700)", bg: "var(--brand-100)" },
+  in_review: { label: "In Review", color: "var(--orange-700)", bg: "var(--orange-100)" },
+  approved: { label: "Approved", color: "var(--green-700)", bg: "var(--green-100)" },
+  ready_to_post: { label: "Ready to Post", color: "var(--blue-700)", bg: "var(--blue-100)" },
+  posted: { label: "Posted", color: "var(--green-700)", bg: "var(--green-100)" },
+  done: { label: "Done", color: "var(--green-700)", bg: "var(--green-100)" },
+};
+
+export const V3_CAMPAIGN_STATUS_FLOW = [
+  "in_creation", "waiting_for_creators", "creators_found", "invited",
+  "accepted", "placed_order", "received_creating", "in_review",
+  "approved", "posted", "done"
+] as const;
+
+export const GATED_COMPENSATION_TYPES: CompensationType[] = ["paid", "discount", "commission_boost"];
+export const MVP_COMPENSATION_TYPES: CompensationType[] = ["gifted", "gift_card"];
 
 export interface ContentSubmission {
   id: string;
@@ -191,6 +218,10 @@ export interface CreatorAssignment {
   };
   contentSubmissions: ContentSubmission[];
   joinedAt: string;
+  productCode?: string;
+  orderStatus?: "pending" | "placed" | "received";
+  isFavorite?: boolean;
+  livePostUrl?: string;
 }
 
 export interface Campaign extends Omit<CampaignDraft, 'briefFile'> {
@@ -292,7 +323,7 @@ export const MOCK_CAMPAIGNS: Campaign[] = [
         aiMatchReason: "High engagement in Beauty + strong Benable recommendation history",
         isExclusive: false,
         pastCampaignCount: 1,
-        status: "content_submitted",
+        status: "creating_content",
         compensation: { type: "gifted", amount: 35 },
         contentSubmissions: [
           {
@@ -438,7 +469,7 @@ export const MOCK_CAMPAIGNS: Campaign[] = [
         aiMatchReason: "Benable-only creator — not on LTK, ShopMy, or TikTok Shop",
         isExclusive: true,
         pastCampaignCount: 0,
-        status: "negotiating",
+        status: "interested",
         compensation: { type: "paid", amount: 250 },
         contentSubmissions: [],
         joinedAt: "2026-02-09",
