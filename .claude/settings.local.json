@@ -14,7 +14,9 @@
       "mcp__mcp-registry__search_mcp_registry",
       "Bash(gh repo create:*)",
       "Bash(git remote set-url:*)",
-      "Bash(npx gh-pages:*)"
+      "Bash(npx gh-pages:*)",
+      "Bash(gh api:*)",
+      "WebFetch(domain:juliabenable.github.io)"
     ]
   }
 }
