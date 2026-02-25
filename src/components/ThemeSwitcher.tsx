@@ -1,20 +1,23 @@
 /**
  * Floating theme switcher — pill-shaped FAB in bottom-right corner
- * Expands on click to show all 5 themes with color previews
+ * Shows design philosophy previews (neutral swatches, not brand colors)
  */
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/lib/theme-context";
-import { themeOrder, themes } from "@/lib/themes";
+import { themeOrder, themes, type ThemeId } from "@/lib/themes";
 import { Palette } from "lucide-react";
 
-// Color preview dots for each theme
-const themePreviewColors: Record<string, string[]> = {
-  original: ["#7C3AED", "#A78BFA", "#EC4899"],
-  dynamic: ["#0891B2", "#06B6D4", "#F43F5E"],
-  calm: ["#3D8B50", "#6BB87D", "#8B6F47"],
-  playful: ["#E11D69", "#FBBF24", "#06B6D4"],
-  editorial: ["#D4AF37", "#F5F5F7", "#111113"],
+/**
+ * Each theme preview shows 3 neutral swatches — the *personality* of the theme,
+ * not the brand color (which is always purple).
+ */
+const themeSwatches: Record<ThemeId, { bg: string; card: string; accent: string }> = {
+  original: { bg: "#FAFAFA", card: "#FFFFFF", accent: "#7C3AED" },
+  precision: { bg: "#F5F5F7", card: "#FFFFFF", accent: "#7C3AED" },
+  warm: { bg: "#FAFAF7", card: "#FFFDF9", accent: "#7C3AED" },
+  playful: { bg: "#FAFAFF", card: "#FFFFFF", accent: "#7C3AED" },
+  editorial: { bg: "#FFFFFF", card: "#FFFFFF", accent: "#7C3AED" },
 };
 
 export default function ThemeSwitcher() {
@@ -44,7 +47,7 @@ export default function ThemeSwitcher() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.9 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute bottom-16 right-0 w-56 rounded-2xl border p-3 shadow-xl"
+            className="absolute bottom-16 right-0 w-64 rounded-2xl border p-3 shadow-xl"
             style={{
               backgroundColor: "var(--card)",
               borderColor: "var(--border)",
@@ -54,13 +57,13 @@ export default function ThemeSwitcher() {
               className="text-xs font-semibold uppercase tracking-wider mb-2 px-1"
               style={{ color: "var(--muted-foreground)" }}
             >
-              Switch Theme
+              Design Philosophy
             </p>
             <div className="flex flex-col gap-1">
               {themeOrder.map((id) => {
                 const t = themes[id];
                 const isActive = id === themeId;
-                const colors = themePreviewColors[id];
+                const swatch = themeSwatches[id];
                 return (
                   <motion.button
                     key={id}
@@ -77,35 +80,44 @@ export default function ThemeSwitcher() {
                       fontWeight: isActive ? 600 : 400,
                     }}
                   >
-                    {/* Color preview dots */}
-                    <div className="flex -space-x-1.5 shrink-0">
-                      {colors.map((c, i) => (
-                        <div
-                          key={i}
-                          className="h-4 w-4 rounded-full border-2"
-                          style={{
-                            backgroundColor: c,
-                            borderColor: id === "editorial" ? "#3A3A3C" : "#FFFFFF",
-                            zIndex: 3 - i,
-                          }}
-                        />
-                      ))}
+                    {/* Swatch preview: bg + card + accent stacked */}
+                    <div className="flex shrink-0 gap-0.5">
+                      <div
+                        className="h-5 w-3 rounded-l-md border"
+                        style={{
+                          backgroundColor: swatch.bg,
+                          borderColor: "var(--border)",
+                        }}
+                      />
+                      <div
+                        className="h-5 w-3 border-y"
+                        style={{
+                          backgroundColor: swatch.card,
+                          borderColor: "var(--border)",
+                        }}
+                      />
+                      <div
+                        className="h-5 w-3 rounded-r-md"
+                        style={{
+                          backgroundColor: swatch.accent,
+                        }}
+                      />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="leading-tight">
-                        {t.emoji} {t.label}
+                    <div className="flex flex-col min-w-0">
+                      <span className="leading-tight font-medium truncate">
+                        {t.label}
                       </span>
                       <span
-                        className="text-[10px]"
+                        className="text-[10px] truncate"
                         style={{ color: "var(--muted-foreground)" }}
                       >
-                        {t.description}
+                        {t.subtitle} · {t.inspiration}
                       </span>
                     </div>
                     {isActive && (
                       <motion.div
                         layoutId="theme-check"
-                        className="ml-auto text-xs"
+                        className="ml-auto text-xs shrink-0"
                         style={{ color: "var(--primary)" }}
                       >
                         ✓

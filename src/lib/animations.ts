@@ -214,8 +214,8 @@ export const successBurst = {
 
 export function themedPageVariants(t: ThemeDefinition): Variants {
   const s = t.animationSpeed;
-  // Playful: bounce in. Calm: gentle fade. Dynamic: fast snap. Editorial: cinematic.
-  const initialY = t.id === "playful" ? 24 : t.id === "dynamic" ? 6 : t.id === "editorial" ? 0 : 12;
+  // Playful: bounce in. Warm: gentle fade. Precision: fast snap. Editorial: cinematic.
+  const initialY = t.id === "playful" ? 24 : t.id === "precision" ? 6 : t.id === "editorial" ? 0 : 12;
   const initialScale = t.id === "playful" ? 0.95 : t.id === "editorial" ? 0.98 : 1;
 
   return {
@@ -226,7 +226,7 @@ export function themedPageVariants(t: ThemeDefinition): Variants {
       scale: 1,
       transition: {
         duration: 0.45 * s,
-        ease: t.id === "playful" ? ease.spring : t.id === "calm" ? [0.16, 1, 0.3, 1] as Easing4 : ease.out,
+        ease: t.id === "playful" ? ease.spring : t.id === "warm" ? [0.16, 1, 0.3, 1] as Easing4 : ease.out,
       },
     },
     exit: {
@@ -256,8 +256,8 @@ export function themedStaggerItem(t: ThemeDefinition): Variants {
   // Each theme has different reveal style
   const initial = (() => {
     switch (t.id) {
-      case "dynamic": return { opacity: 0, x: -12, scale: 0.98 };
-      case "calm": return { opacity: 0, y: 8 };
+      case "precision": return { opacity: 0, x: -12, scale: 0.98 };
+      case "warm": return { opacity: 0, y: 8 };
       case "playful": return { opacity: 0, y: 20, scale: 0.92, rotate: -2 };
       case "editorial": return { opacity: 0, y: 4 };
       default: return { opacity: 0, y: 16, scale: 0.97 };
@@ -323,8 +323,8 @@ export function themedCheckPop(t: ThemeDefinition) {
 }
 
 export function themedBlobFloat(t: ThemeDefinition, delay: number = 0) {
-  const amplitude = t.id === "calm" ? 6 : t.id === "dynamic" ? 18 : t.id === "editorial" ? 4 : 12;
-  const duration = t.id === "calm" ? 10 : t.id === "dynamic" ? 4 : t.id === "editorial" ? 8 : 6;
+  const amplitude = t.id === "warm" ? 6 : t.id === "precision" ? 18 : t.id === "editorial" ? 4 : 12;
+  const duration = t.id === "warm" ? 10 : t.id === "precision" ? 4 : t.id === "editorial" ? 8 : 6;
   return {
     animate: {
       y: [0, -amplitude, 0],
@@ -343,7 +343,7 @@ export function themedBlobFloat(t: ThemeDefinition, delay: number = 0) {
 
 export function themedButtonTap(t: ThemeDefinition) {
   return {
-    scale: t.id === "playful" ? 0.92 : t.id === "dynamic" ? 0.95 : 0.97,
+    scale: t.id === "playful" ? 0.92 : t.id === "precision" ? 0.95 : 0.97,
     rotate: t.id === "playful" ? -3 : 0,
     transition: { duration: 0.1 * t.animationSpeed } as Transition,
   };
