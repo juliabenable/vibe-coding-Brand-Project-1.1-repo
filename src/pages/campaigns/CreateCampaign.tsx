@@ -17,7 +17,6 @@ import {
   Package,
   ExternalLink,
   MessageSquare,
-  Calendar,
   Shield,
   Sparkles,
   ChevronRight,
@@ -464,8 +463,8 @@ function StepBrief({
         <div className="space-y-2 mb-3">
           {draft.platformRequirements.map((req) => (
             <div key={req.id} className="group flex items-start gap-3 rounded-xl border border-[var(--neutral-150,var(--neutral-200))] bg-[var(--neutral-50)] px-4 py-3 transition-all hover:border-[var(--brand-300)]">
-              <div className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[var(--brand-700)]">
-                <Check className="size-2.5 text-white" />
+              <div className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[var(--brand-100)]">
+                <Check className="size-2.5 text-[var(--brand-700)]" />
               </div>
               <span className="flex-1 text-sm text-[var(--neutral-700)] leading-relaxed">{req.text}</span>
               <button type="button" onClick={() => removePlatformReq(req.id)} className="shrink-0 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-[var(--neutral-100)]">
@@ -498,8 +497,8 @@ function StepBrief({
         <div className="space-y-2 mb-3">
           {draft.otherRequirements.map((req) => (
             <div key={req.id} className="group flex items-start gap-3 rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 transition-all hover:border-[var(--brand-300)]">
-              <div className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[var(--brand-700)]">
-                <Check className="size-2.5 text-white" />
+              <div className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[var(--neutral-100)]">
+                <Check className="size-2.5 text-[var(--neutral-500)]" />
               </div>
               <span className="flex-1 text-sm text-[var(--neutral-700)] leading-relaxed">{req.text}</span>
               <button type="button" onClick={() => removeOtherReq(req.id)} className="shrink-0 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-[var(--neutral-100)]">
@@ -818,26 +817,6 @@ function StepPreview({
 
           <Separator className="bg-[var(--neutral-100)]" />
 
-          {/* Timeline */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar className="size-4 text-[var(--neutral-500)]" />
-              <h4 className="text-xs font-bold uppercase tracking-wide text-[var(--neutral-800)]">Timeline</h4>
-            </div>
-            <div className="flex gap-4">
-              <div>
-                <p className="text-[10px] text-[var(--neutral-400)] uppercase tracking-wide">Content Due</p>
-                <p className="text-sm font-medium text-[var(--neutral-700)]">Mar 20, 2026</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-[var(--neutral-400)] uppercase tracking-wide">Posting Window</p>
-                <p className="text-sm font-medium text-[var(--neutral-700)]">Mar 25 – Mar 31, 2026</p>
-              </div>
-            </div>
-          </div>
-
-          <Separator className="bg-[var(--neutral-100)]" />
-
           {/* Terms */}
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -850,15 +829,9 @@ function StepPreview({
           </div>
         </div>
 
-        {/* Footer CTA (non-functional, just the preview) */}
-        <div className="border-t border-[var(--neutral-200)] bg-[var(--neutral-50)] px-6 py-4">
-          <div
-            className="w-full rounded-xl py-3 text-center text-sm font-semibold text-white"
-            style={{ backgroundColor: "var(--brand-700)" }}
-          >
-            Accept Campaign
-          </div>
-          <p className="mt-2 text-center text-[10px] text-[var(--neutral-400)]">
+        {/* Footer */}
+        <div className="border-t border-[var(--neutral-200)] bg-[var(--neutral-50)] px-6 py-3">
+          <p className="text-center text-[10px] text-[var(--neutral-400)]">
             Questions? Email collabs@benable.com
           </p>
         </div>
