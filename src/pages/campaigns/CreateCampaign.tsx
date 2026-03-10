@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-// Separator removed – no longer needed
+import { Separator } from "@/components/ui/separator";
 import {
   ArrowRight,
   ArrowLeft,
@@ -17,10 +17,10 @@ import {
   Package,
   ExternalLink,
   MessageSquare,
+  Calendar,
   Shield,
   Sparkles,
   ChevronRight,
-  Smartphone,
   Users,
 } from "lucide-react";
 
@@ -578,38 +578,39 @@ function StepCompensation({
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
-      {/* Gifting Instructions — Prominent callout above everything */}
-      <Section
-        icon={<MessageSquare className="size-4 text-[var(--brand-700)]" />}
-        title="Gifting Instructions"
-        subtitle="Tell creators how to choose their product. This appears above the product selection."
-      >
-        <textarea
-          className="flex min-h-[70px] w-full rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-800)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
-          value={draft.giftingInstructions}
-          onChange={(e) => setDraft((prev) => ({ ...prev, giftingInstructions: e.target.value }))}
-          placeholder="e.g., Choose 1 product from the selection below, Pick your two favorites..."
-        />
-        <div className="mt-3 flex flex-wrap gap-2">
-          {["Choose 1 product", "Pick your 2 favorites", "Select any product you'd like to feature"].map((suggestion) => (
-            <button
-              key={suggestion}
-              type="button"
-              onClick={() => setDraft((prev) => ({ ...prev, giftingInstructions: suggestion + " from the selection below." }))}
-              className="rounded-lg border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-3 py-1.5 text-xs text-[var(--neutral-600)] transition-all hover:border-[var(--brand-300)] hover:bg-[var(--brand-0)] hover:text-[var(--brand-700)]"
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
-      </Section>
-
       {/* Gifted Product Section */}
       <Section
         icon={<Gift className="size-4 text-[var(--brand-700)]" />}
         title="Gifted Product"
-        subtitle="Select products from your Shopify store to gift to creators."
+        subtitle="Tell creators how to choose their product, then select which products to offer."
       >
+        {/* Gifting Instructions */}
+        <div className="mb-5">
+          <label className="flex items-center gap-2 text-[13px] font-medium text-[var(--neutral-700)] mb-2">
+            <MessageSquare className="size-3.5 text-[var(--neutral-500)]" />
+            Instructions for creators
+          </label>
+          <textarea
+            className="flex min-h-[70px] w-full rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-800)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
+            value={draft.giftingInstructions}
+            onChange={(e) => setDraft((prev) => ({ ...prev, giftingInstructions: e.target.value }))}
+            placeholder="e.g., Choose 1 product from the selection below, Pick your two favorites..."
+          />
+          <div className="mt-3 flex flex-wrap gap-2">
+            {["Choose 1 product", "Pick your 2 favorites", "Select any product you'd like to feature"].map((suggestion) => (
+              <button
+                key={suggestion}
+                type="button"
+                onClick={() => setDraft((prev) => ({ ...prev, giftingInstructions: suggestion + " from the selection below." }))}
+                className="rounded-lg border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-3 py-1.5 text-xs text-[var(--neutral-600)] transition-all hover:border-[var(--brand-300)] hover:bg-[var(--brand-0)] hover:text-[var(--brand-700)]"
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <Separator className="bg-[var(--neutral-100)] mb-5" />
         {/* Shopify connection status */}
         <div className="flex items-center gap-2 rounded-xl border border-[var(--green-300)] bg-[var(--green-100)] px-4 py-2.5 mb-5">
           <ShoppingBag className="size-4 text-[var(--green-700)]" />
@@ -705,169 +706,161 @@ function StepPreview({
 
   return (
     <div className="mx-auto max-w-xl">
-      {/* Preview banner */}
-      <div className="flex items-center justify-center gap-2 mb-5 rounded-xl border border-dashed border-[var(--brand-300)] bg-[var(--brand-0)] px-4 py-3">
-        <Smartphone className="size-4 text-[var(--brand-700)]" />
-        <span className="text-xs font-semibold text-[var(--brand-700)]">
-          Creator Preview — This is exactly what creators will see
+      {/* Preview frame label */}
+      <div className="flex items-center justify-center gap-2 mb-4">
+        <Eye className="size-4 text-[var(--brand-700)]" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-[var(--brand-700)]">
+          Creator Preview — This is what they'll see
         </span>
       </div>
 
-      {/* ── Phone-style frame ── */}
-      <div className="relative mx-auto max-w-[420px]">
-        {/* Device frame */}
-        <div
-          className="rounded-[28px] border-2 border-[var(--neutral-300)] bg-[var(--neutral-100)] p-2 overflow-hidden"
-          style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)" }}
-        >
-          {/* Notch bar */}
-          <div className="flex items-center justify-center py-1.5 bg-white rounded-t-[22px]">
-            <div className="h-[5px] w-[80px] rounded-full bg-[var(--neutral-200)]" />
+      {/* The "card" that simulates what the creator sees */}
+      <div
+        className="rounded-2xl border-2 border-[var(--neutral-200)] overflow-hidden"
+        style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}
+      >
+        {/* Brand header */}
+        <div className="bg-gradient-to-br from-[var(--brand-700)] to-[var(--brand-600)] px-6 py-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white font-bold text-sm">
+              28
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-white">Summer Glow Collection Launch</h2>
+              <p className="text-xs text-white/70">by 28 Litsea</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white px-6 py-5 space-y-5">
+          {/* Campaign description */}
+          <div>
+            <p className="text-sm text-[var(--neutral-700)] leading-relaxed">
+              {brief.campaignDescription || "No campaign description provided."}
+            </p>
           </div>
 
-          {/* Inner screen */}
-          <div className="bg-white rounded-b-[22px] overflow-hidden">
-            {/* Brand header */}
-            <div
-              className="px-5 pt-6 pb-5"
-              style={{ background: "linear-gradient(135deg, var(--brand-700) 0%, var(--brand-600) 100%)" }}
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white font-bold text-sm ring-2 ring-white/10">
-                  28
-                </div>
-                <div>
-                  <p className="text-[10px] font-medium text-white/60 uppercase tracking-wider">Campaign Invite</p>
-                  <h2 className="text-[15px] font-bold text-white leading-tight">Summer Glow Collection Launch</h2>
-                </div>
-              </div>
-              <p className="text-xs text-white/80 leading-relaxed">by 28 Litsea</p>
-            </div>
+          <Separator className="bg-[var(--neutral-100)]" />
 
-            <div className="px-5 py-5 space-y-5">
-              {/* About the brand */}
-              {brief.brandDescription && (
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--neutral-400)] mb-1.5">About the Brand</p>
-                  <p className="text-[13px] text-[var(--neutral-600)] leading-relaxed">
-                    {brief.brandDescription}
-                  </p>
+          {/* Compensation */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Gift className="size-4 text-[var(--brand-700)]" />
+              <h4 className="text-xs font-bold uppercase tracking-wide text-[var(--neutral-800)]">Compensation</h4>
+            </div>
+            <div className="rounded-xl bg-[var(--brand-0)] border border-[var(--brand-200)] p-4">
+              <p className="text-sm font-semibold text-[var(--brand-700)] mb-1">
+                Free product (valued at ${totalValue > 0 ? totalValue.toFixed(0) : "—"})
+              </p>
+              {comp.giftingInstructions && (
+                <p className="text-xs text-[var(--neutral-600)] leading-relaxed">
+                  {comp.giftingInstructions}
+                </p>
+              )}
+              {comp.selectedProducts.length > 0 && (
+                <div className="mt-3 flex gap-2 overflow-x-auto">
+                  {comp.selectedProducts.map((p) => (
+                    <div key={p.id} className="flex items-center gap-2 rounded-lg bg-white border border-[var(--neutral-200)] px-3 py-2 shrink-0">
+                      <img src={p.image} alt={p.title} className="h-8 w-8 rounded-md object-cover" />
+                      <div>
+                        <p className="text-xs font-medium text-[var(--neutral-800)]">{p.title}</p>
+                        <p className="text-[10px] text-[var(--neutral-500)]">{p.price}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
+            </div>
+          </div>
 
-              <div className="h-px bg-[var(--neutral-100)]" />
+          <Separator className="bg-[var(--neutral-100)]" />
 
-              {/* Campaign details */}
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--neutral-400)] mb-1.5">About This Campaign</p>
-                <p className="text-[13px] text-[var(--neutral-700)] leading-relaxed">
-                  {brief.campaignDescription || "No campaign description provided."}
-                </p>
-              </div>
-
-              <div className="h-px bg-[var(--neutral-100)]" />
-
-              {/* Compensation / Gifting */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <Gift className="size-3.5 text-[var(--brand-700)]" />
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--neutral-400)]">Compensation</p>
-                </div>
-                <div className="rounded-xl bg-gradient-to-br from-[var(--brand-0)] to-[var(--brand-100)] border border-[var(--brand-200)] p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-[13px] font-semibold text-[var(--brand-700)]">
-                      Free product gifting
-                    </p>
-                    <Badge className="border-0 bg-[var(--brand-200)] text-[var(--brand-700)] text-[10px]">
-                      ~${totalValue > 0 ? totalValue.toFixed(0) : "—"} value
-                    </Badge>
+          {/* Content Requirements */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="size-4 text-[var(--brand-700)]" />
+              <h4 className="text-xs font-bold uppercase tracking-wide text-[var(--neutral-800)]">Content Requirements</h4>
+            </div>
+            <div className="space-y-2">
+              {brief.platformRequirements.map((req) => (
+                <div key={req.id} className="flex items-start gap-2.5">
+                  <div className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[var(--brand-100)]">
+                    <Check className="size-2.5 text-[var(--brand-700)]" />
                   </div>
-                  {comp.giftingInstructions && (
-                    <p className="text-xs text-[var(--neutral-600)] leading-relaxed mb-3">
-                      {comp.giftingInstructions}
-                    </p>
-                  )}
-                  {comp.selectedProducts.length > 0 && (
-                    <div className="space-y-2">
-                      {comp.selectedProducts.map((p) => (
-                        <div key={p.id} className="flex items-center gap-3 rounded-lg bg-white border border-[var(--neutral-200)] px-3 py-2.5">
-                          <img src={p.image} alt={p.title} className="h-10 w-10 rounded-lg object-cover" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium text-[var(--neutral-800)] truncate">{p.title}</p>
-                            <p className="text-[10px] text-[var(--neutral-500)]">{p.variant}</p>
-                          </div>
-                          <span className="text-xs font-semibold text-[var(--neutral-700)]">{p.price}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <span className="text-sm text-[var(--neutral-700)] leading-relaxed">{req.text}</span>
                 </div>
-              </div>
+              ))}
+            </div>
+          </div>
 
-              <div className="h-px bg-[var(--neutral-100)]" />
-
-              {/* Content Requirements */}
+          {/* Other Requirements */}
+          {brief.otherRequirements.length > 0 && (
+            <>
+              <Separator className="bg-[var(--neutral-100)]" />
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="size-3.5 text-[var(--brand-700)]" />
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--neutral-400)]">Content Requirements</p>
+                  <FileText className="size-4 text-[var(--neutral-500)]" />
+                  <h4 className="text-xs font-bold uppercase tracking-wide text-[var(--neutral-800)]">Other Requirements</h4>
                 </div>
-                <div className="space-y-2.5">
-                  {brief.platformRequirements.map((req) => (
+                <div className="space-y-2">
+                  {brief.otherRequirements.map((req) => (
                     <div key={req.id} className="flex items-start gap-2.5">
-                      <div className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[var(--brand-100)]">
-                        <Check className="size-2.5 text-[var(--brand-700)]" />
+                      <div className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[var(--neutral-100)]">
+                        <Check className="size-2.5 text-[var(--neutral-500)]" />
                       </div>
-                      <span className="text-[13px] text-[var(--neutral-700)] leading-relaxed">{req.text}</span>
+                      <span className="text-sm text-[var(--neutral-600)] leading-relaxed">{req.text}</span>
                     </div>
                   ))}
                 </div>
               </div>
+            </>
+          )}
 
-              {/* Other Requirements */}
-              {brief.otherRequirements.length > 0 && (
-                <>
-                  <div className="h-px bg-[var(--neutral-100)]" />
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <FileText className="size-3.5 text-[var(--neutral-500)]" />
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--neutral-400)]">Other Requirements</p>
-                    </div>
-                    <div className="space-y-2.5">
-                      {brief.otherRequirements.map((req) => (
-                        <div key={req.id} className="flex items-start gap-2.5">
-                          <div className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[var(--neutral-100)]">
-                            <Check className="size-2.5 text-[var(--neutral-500)]" />
-                          </div>
-                          <span className="text-[13px] text-[var(--neutral-600)] leading-relaxed">{req.text}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
+          <Separator className="bg-[var(--neutral-100)]" />
 
-              <div className="h-px bg-[var(--neutral-100)]" />
-
-              {/* Terms */}
+          {/* Timeline */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Calendar className="size-4 text-[var(--neutral-500)]" />
+              <h4 className="text-xs font-bold uppercase tracking-wide text-[var(--neutral-800)]">Timeline</h4>
+            </div>
+            <div className="flex gap-4">
               <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Shield className="size-3.5 text-[var(--neutral-500)]" />
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--neutral-400)]">Terms & Commitments</p>
-                </div>
-                <p className="text-[11px] text-[var(--neutral-500)] leading-relaxed">
-                  {brief.terms || "No terms specified."}
-                </p>
+                <p className="text-[10px] text-[var(--neutral-400)] uppercase tracking-wide">Content Due</p>
+                <p className="text-sm font-medium text-[var(--neutral-700)]">Mar 20, 2026</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-[var(--neutral-400)] uppercase tracking-wide">Posting Window</p>
+                <p className="text-sm font-medium text-[var(--neutral-700)]">Mar 25 – Mar 31, 2026</p>
               </div>
             </div>
-
-            {/* Footer */}
-            <div className="border-t border-[var(--neutral-100)] bg-white px-5 py-3">
-              <p className="text-center text-[10px] text-[var(--neutral-400)]">
-                Questions? Email collabs@benable.com
-              </p>
-            </div>
           </div>
+
+          <Separator className="bg-[var(--neutral-100)]" />
+
+          {/* Terms */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="size-4 text-[var(--neutral-500)]" />
+              <h4 className="text-xs font-bold uppercase tracking-wide text-[var(--neutral-800)]">Terms & Commitments</h4>
+            </div>
+            <p className="text-xs text-[var(--neutral-500)] leading-relaxed">
+              {brief.terms || "No terms specified."}
+            </p>
+          </div>
+        </div>
+
+        {/* Footer CTA (non-functional, just the preview) */}
+        <div className="border-t border-[var(--neutral-200)] bg-[var(--neutral-50)] px-6 py-4">
+          <div
+            className="w-full rounded-xl py-3 text-center text-sm font-semibold text-white"
+            style={{ backgroundColor: "var(--brand-700)" }}
+          >
+            Accept Campaign
+          </div>
+          <p className="mt-2 text-center text-[10px] text-[var(--neutral-400)]">
+            Questions? Email collabs@benable.com
+          </p>
         </div>
       </div>
     </div>
