@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -12,28 +10,13 @@ import {
   Plus,
   X,
   Gift,
-  CreditCard,
-  DollarSign,
-  TrendingUp,
-  Tag,
-  Lock,
-  Zap,
   FileText,
   Eye,
+  Search,
+  ShoppingBag,
+  Package,
+  ExternalLink,
 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  type CompensationType,
-  type CompensationConfig,
-  defaultCompensationTypes,
-  GATED_COMPENSATION_TYPES,
-} from "@/store/campaign-store";
 
 // ─── Step labels ───
 const STEP_LABELS = ["Brief", "Compensation & Creators"];
@@ -142,24 +125,227 @@ const DEFAULT_OTHER_REQUIREMENTS: OtherRequirement[] = [
 ];
 
 const PREFILLED_TERMS =
-  "Content must be original and not previously published. Brand reserves the right to request one round of revisions within 48 hours. UGC rights granted for 90 days across brand channels. Posting must occur within the campaign flight window.";
+  "You agree to deliver the content described above. All content must be submitted for review before publishing. You agree to keep the product and campaign details confidential until publication. UGC rights granted for 90 days across brand channels.";
 
-// ─── Compensation tile config ───
-const COMPENSATION_TILES: {
-  type: CompensationType;
-  label: string;
-  icon: React.ElementType;
-  color: string;
-  bgColor: string;
-  borderColor: string;
-  iconBg: string;
-}[] = [
-  { type: "gifted", label: "Gifted Product", icon: Gift, color: "var(--brand-700)", bgColor: "var(--brand-100)", borderColor: "var(--brand-400)", iconBg: "var(--brand-200)" },
-  { type: "gift_card", label: "Gift Card", icon: CreditCard, color: "var(--blue-700)", bgColor: "var(--blue-100)", borderColor: "var(--blue-300)", iconBg: "#CCE8FF" },
-  { type: "discount", label: "Discount Code", icon: Tag, color: "var(--green-700)", bgColor: "var(--green-100)", borderColor: "var(--green-300)", iconBg: "#C6F0E2" },
-  { type: "paid", label: "Paid Fee", icon: DollarSign, color: "var(--orange-700)", bgColor: "var(--orange-100)", borderColor: "var(--orange-300)", iconBg: "var(--orange-300)" },
-  { type: "commission_boost", label: "Commission Boost", icon: TrendingUp, color: "#7B61C2", bgColor: "#F3EEFF", borderColor: "#C9B8F0", iconBg: "#DDD0F7" },
+// ─── Mock Shopify products (simulating what the Shopify API would return) ───
+interface ShopifyProduct {
+  id: string;
+  title: string;
+  image: string;
+  price: string;
+  variant: string;
+  inventory: number;
+  handle: string;
+}
+
+const MOCK_SHOPIFY_PRODUCTS: ShopifyProduct[] = [
+  {
+    id: "gid://shopify/Product/8012345",
+    title: "Summer Glow Serum",
+    image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=80&h=80&fit=crop",
+    price: "$42.00",
+    variant: "30ml",
+    inventory: 145,
+    handle: "summer-glow-serum",
+  },
+  {
+    id: "gid://shopify/Product/8012346",
+    title: "Melted Balm",
+    image: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=80&h=80&fit=crop",
+    price: "$35.00",
+    variant: "15g",
+    inventory: 230,
+    handle: "melted-balm",
+  },
+  {
+    id: "gid://shopify/Product/8012347",
+    title: "Botanical Face Mist",
+    image: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=80&h=80&fit=crop",
+    price: "$28.00",
+    variant: "100ml",
+    inventory: 89,
+    handle: "botanical-face-mist",
+  },
+  {
+    id: "gid://shopify/Product/8012348",
+    title: "Litsea Body Oil",
+    image: "https://images.unsplash.com/photo-1600428877878-1a0ff561972c?w=80&h=80&fit=crop",
+    price: "$55.00",
+    variant: "200ml",
+    inventory: 62,
+    handle: "litsea-body-oil",
+  },
+  {
+    id: "gid://shopify/Product/8012349",
+    title: "Clean Glow SPF 30",
+    image: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=80&h=80&fit=crop",
+    price: "$38.00",
+    variant: "50ml",
+    inventory: 178,
+    handle: "clean-glow-spf-30",
+  },
+  {
+    id: "gid://shopify/Product/8012350",
+    title: "Overnight Repair Mask",
+    image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=80&h=80&fit=crop",
+    price: "$48.00",
+    variant: "50ml",
+    inventory: 95,
+    handle: "overnight-repair-mask",
+  },
 ];
+
+// ─── Shopify Product Picker Modal (simulates Shopify App Bridge ResourcePicker) ───
+function ShopifyProductPicker({
+  isOpen,
+  onClose,
+  onSelect,
+  selectedIds,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelect: (products: ShopifyProduct[]) => void;
+  selectedIds: Set<string>;
+}) {
+  const [search, setSearch] = useState("");
+  const [tempSelected, setTempSelected] = useState<Set<string>>(new Set(selectedIds));
+
+  if (!isOpen) return null;
+
+  const filtered = MOCK_SHOPIFY_PRODUCTS.filter((p) =>
+    p.title.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const toggleProduct = (id: string) => {
+    setTempSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleConfirm = () => {
+    const selected = MOCK_SHOPIFY_PRODUCTS.filter((p) => tempSelected.has(p.id));
+    onSelect(selected);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div
+        className="w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden"
+        style={{ backgroundColor: "var(--card)", borderColor: "var(--border)" }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: "var(--border)" }}>
+          <div className="flex items-center gap-2">
+            <ShoppingBag className="size-5 text-[var(--brand-700)]" />
+            <h3 className="text-base font-bold text-[var(--neutral-800)]">Select Products</h3>
+            <Badge className="border-0 bg-[var(--green-100)] text-[var(--green-700)] text-[10px] gap-1">
+              <ExternalLink className="size-2.5" /> Shopify
+            </Badge>
+          </div>
+          <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-[var(--neutral-100)] transition-colors">
+            <X className="size-4 text-[var(--neutral-500)]" />
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="px-5 py-3 border-b" style={{ borderColor: "var(--border)" }}>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--neutral-400)]" />
+            <input
+              className="w-full rounded-lg border bg-white py-2.5 pl-10 pr-4 text-sm text-[var(--neutral-800)] placeholder:text-[var(--neutral-400)] outline-none focus:border-[var(--brand-700)] focus:ring-1 focus:ring-[var(--brand-700)]"
+              style={{ borderColor: "var(--border)" }}
+              placeholder="Search products..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              autoFocus
+            />
+          </div>
+        </div>
+
+        {/* Product list */}
+        <div className="max-h-[360px] overflow-y-auto px-2 py-2">
+          {filtered.length === 0 && (
+            <div className="py-8 text-center text-sm text-[var(--neutral-400)]">
+              No products match your search.
+            </div>
+          )}
+          {filtered.map((product) => {
+            const isSelected = tempSelected.has(product.id);
+            return (
+              <button
+                key={product.id}
+                type="button"
+                onClick={() => toggleProduct(product.id)}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all hover:bg-[var(--neutral-50)]"
+                style={{
+                  backgroundColor: isSelected ? "var(--brand-0)" : "transparent",
+                }}
+              >
+                {/* Checkbox */}
+                <div
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded transition-all"
+                  style={{
+                    backgroundColor: isSelected ? "var(--brand-700)" : "white",
+                    border: isSelected ? "none" : "1.5px solid var(--neutral-300)",
+                  }}
+                >
+                  {isSelected && <Check className="size-3 text-white" />}
+                </div>
+
+                {/* Product image */}
+                <img
+                  src={product.image}
+                  alt={product.title}
+                  className="h-11 w-11 rounded-lg object-cover border"
+                  style={{ borderColor: "var(--border)" }}
+                />
+
+                {/* Product info */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-[var(--neutral-800)] truncate">
+                    {product.title}
+                  </p>
+                  <p className="text-xs text-[var(--neutral-500)]">
+                    {product.variant} · {product.inventory} in stock
+                  </p>
+                </div>
+
+                {/* Price */}
+                <span className="text-sm font-semibold text-[var(--neutral-700)] shrink-0">
+                  {product.price}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between border-t px-5 py-3" style={{ borderColor: "var(--border)" }}>
+          <span className="text-xs text-[var(--neutral-500)]">
+            {tempSelected.size} product{tempSelected.size !== 1 ? "s" : ""} selected
+          </span>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleConfirm}
+              disabled={tempSelected.size === 0}
+              style={{ backgroundColor: "var(--brand-700)", color: "white" }}
+            >
+              Add Products
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ═══════════════════════════════════════════════════
 // STEP 1 — Campaign Brief
@@ -403,10 +589,10 @@ function StepBrief({
 }
 
 // ═══════════════════════════════════════════════════
-// STEP 2 — Compensation & Creator Preferences
+// STEP 2 — Gifted Product (Shopify) & Creator Preferences
 // ═══════════════════════════════════════════════════
 interface CompensationDraft {
-  compensationTypes: CompensationConfig[];
+  selectedProducts: ShopifyProduct[];
   creatorDescription: string;
 }
 
@@ -417,188 +603,108 @@ function StepCompensation({
   draft: CompensationDraft;
   setDraft: React.Dispatch<React.SetStateAction<CompensationDraft>>;
 }) {
-  const toggleCompensation = (type: CompensationType, enabled: boolean) => {
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const handleProductSelect = (products: ShopifyProduct[]) => {
+    setDraft((prev) => ({ ...prev, selectedProducts: products }));
+  };
+
+  const removeProduct = (id: string) => {
     setDraft((prev) => ({
       ...prev,
-      compensationTypes: prev.compensationTypes.map((c) =>
-        c.type === type ? { ...c, enabled } : c
-      ),
+      selectedProducts: prev.selectedProducts.filter((p) => p.id !== id),
     }));
   };
 
-  const updateCompensation = (type: CompensationType, field: string, value: unknown) => {
-    setDraft((prev) => ({
-      ...prev,
-      compensationTypes: prev.compensationTypes.map((c) =>
-        c.type === type ? { ...c, [field]: value } : c
-      ),
-    }));
-  };
+  const selectedIds = new Set(draft.selectedProducts.map((p) => p.id));
 
-  const activeComps = draft.compensationTypes.filter((c) => c.enabled);
+  // Total estimated value
+  const totalValue = draft.selectedProducts.reduce((sum, p) => {
+    const price = parseFloat(p.price.replace("$", ""));
+    return sum + (isNaN(price) ? 0 : price);
+  }, 0);
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
-      {/* ── Compensation Structure ── */}
+      {/* ── Gifted Product — Shopify Integration ── */}
       <section className="space-y-4">
-        <div>
-          <h3 className="text-base font-bold text-[var(--neutral-800)]">Compensation Structure</h3>
-          <p className="mt-0.5 text-xs text-[var(--neutral-400)]">
-            What will you offer creators? Select all that apply.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          {COMPENSATION_TILES.map((tile) => {
-            const comp = draft.compensationTypes.find((c) => c.type === tile.type);
-            const active = comp?.enabled ?? false;
-            const isGated = GATED_COMPENSATION_TYPES.includes(tile.type);
-            return (
-              <div key={tile.type} className="relative">
-                <button
-                  type="button"
-                  onClick={() => !isGated && toggleCompensation(tile.type, !active)}
-                  disabled={isGated}
-                  className={`relative flex items-center gap-3 rounded-xl px-4 py-3 transition-all ${isGated ? "opacity-60" : ""}`}
-                  style={{
-                    backgroundColor: active && !isGated ? tile.bgColor : "white",
-                    border: `2px solid ${active && !isGated ? tile.borderColor : "var(--neutral-200)"}`,
-                    pointerEvents: isGated ? "none" : "auto",
-                  }}
-                >
-                  {active && !isGated && (
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full" style={{ backgroundColor: tile.color }}>
-                      <Check className="size-3 text-white" />
-                    </div>
-                  )}
-                  <div
-                    className="flex h-9 w-9 items-center justify-center rounded-lg"
-                    style={{ backgroundColor: tile.iconBg }}
-                  >
-                    <tile.icon className="size-4" style={{ color: tile.color }} />
-                  </div>
-                  <span className="text-sm font-semibold" style={{ color: active && !isGated ? tile.color : "var(--neutral-700)" }}>
-                    {tile.label}
-                  </span>
-                </button>
-                {isGated && (
-                  <div className="absolute inset-0 rounded-xl bg-black/5 flex items-center justify-center">
-                    <div className="flex items-center gap-1.5 bg-white rounded-lg px-2.5 py-1.5 shadow-sm border border-[var(--neutral-200)]">
-                      <Lock className="size-3.5 text-[var(--neutral-600)]" />
-                      <span className="text-xs font-semibold text-[var(--neutral-700)]">Coming Soon</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* MVP info */}
-        <div className="rounded-lg border border-[var(--yellow-300)] bg-[var(--yellow-50)] p-4">
-          <div className="flex items-start gap-3">
-            <Zap className="size-4 text-[var(--yellow-700)] mt-0.5 shrink-0" />
-            <p className="text-sm text-[var(--neutral-700)]">
-              <span className="font-semibold">MVP:</span> Gift card & product via code. Paid, discount, and commission boost coming soon.
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-100)]">
+            <Gift className="size-5 text-[var(--brand-700)]" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-[var(--neutral-800)]">Gifted Product</h3>
+            <p className="text-xs text-[var(--neutral-400)]">
+              Select products from your Shopify store to gift to creators.
             </p>
           </div>
         </div>
 
-        {/* Expanded detail inputs for active compensation types */}
-        {activeComps.length > 0 && (
-          <div className="space-y-4">
-            {activeComps.map((comp) => {
-              const tile = COMPENSATION_TILES.find((p) => p.type === comp.type)!;
-              return (
-                <div
-                  key={comp.type}
-                  className="rounded-xl p-4"
-                  style={{ backgroundColor: tile.bgColor, border: `1px solid ${tile.borderColor}` }}
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <tile.icon className="size-4" style={{ color: tile.color }} />
-                    <span className="text-sm font-semibold" style={{ color: tile.color }}>{tile.label}</span>
-                  </div>
+        {/* Shopify connection status */}
+        <div className="flex items-center gap-2 rounded-lg border border-[var(--green-300)] bg-[var(--green-100)] px-4 py-2.5">
+          <ShoppingBag className="size-4 text-[var(--green-700)]" />
+          <span className="text-sm font-medium text-[var(--green-700)]">Connected to Shopify</span>
+          <span className="text-xs text-[var(--green-600)]">· 28litsea.myshopify.com</span>
+        </div>
 
-                  {comp.type === "gifted" && (
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs text-[var(--neutral-600)]">Product name</Label>
-                        <Input placeholder="e.g., Melted Balm" className="h-8 text-sm bg-white border-[var(--neutral-200)]" value={comp.productName || ""} onChange={(e) => updateCompensation(comp.type, "productName", e.target.value)} />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-[var(--neutral-600)]">Product URL</Label>
-                        <Input placeholder="https://..." className="h-8 text-sm bg-white border-[var(--neutral-200)]" value={comp.productUrl || ""} onChange={(e) => updateCompensation(comp.type, "productUrl", e.target.value)} />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-[var(--neutral-600)]">Est. value/unit</Label>
-                        <Input type="number" placeholder="$35" className="h-8 text-sm bg-white border-[var(--neutral-200)]" value={comp.estValuePerUnit || ""} onChange={(e) => updateCompensation(comp.type, "estValuePerUnit", Number(e.target.value))} />
-                      </div>
-                    </div>
-                  )}
-
-                  {comp.type === "gift_card" && (
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs text-[var(--neutral-600)]">Gift card value</Label>
-                        <Input type="number" placeholder="$50" className="h-8 text-sm bg-white border-[var(--neutral-200)]" value={comp.giftCardValue || ""} onChange={(e) => updateCompensation(comp.type, "giftCardValue", Number(e.target.value))} />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-[var(--neutral-600)]">Product / Brand</Label>
-                        <Input placeholder="e.g., Ulta Beauty" className="h-8 text-sm bg-white border-[var(--neutral-200)]" value={comp.giftCardBrand || ""} onChange={(e) => updateCompensation(comp.type, "giftCardBrand", e.target.value)} />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-[var(--neutral-600)]">Delivery</Label>
-                        <Select value={comp.giftCardDelivery || "brand_provides"} onValueChange={(v) => updateCompensation(comp.type, "giftCardDelivery", v)}>
-                          <SelectTrigger className="h-8 text-sm bg-white border-[var(--neutral-200)]"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="brand_provides">Brand provides code</SelectItem>
-                            <SelectItem value="benable_sends">Benable sends eGift</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  )}
-
-                  {comp.type === "discount" && (
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs text-[var(--neutral-600)]">Discount code</Label>
-                        <Input placeholder="e.g., SUMMER20" className="h-8 text-sm bg-white border-[var(--neutral-200)]" value={comp.discountCode || ""} onChange={(e) => updateCompensation(comp.type, "discountCode", e.target.value)} />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-[var(--neutral-600)]">Discount amount</Label>
-                        <Input placeholder="20% or $10" className="h-8 text-sm bg-white border-[var(--neutral-200)]" value={comp.discountAmount || ""} onChange={(e) => updateCompensation(comp.type, "discountAmount", Number(e.target.value))} />
-                      </div>
-                    </div>
-                  )}
-
-                  {comp.type === "paid" && (
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs text-[var(--neutral-600)]">Min fee/creator</Label>
-                        <Input type="number" placeholder="$100" className="h-8 text-sm bg-white border-[var(--neutral-200)]" value={comp.feeMin || ""} onChange={(e) => updateCompensation(comp.type, "feeMin", Number(e.target.value))} />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-[var(--neutral-600)]">Max fee/creator</Label>
-                        <Input type="number" placeholder="$300" className="h-8 text-sm bg-white border-[var(--neutral-200)]" value={comp.feeMax || ""} onChange={(e) => updateCompensation(comp.type, "feeMax", Number(e.target.value))} />
-                      </div>
-                    </div>
-                  )}
-
-                  {comp.type === "commission_boost" && (
-                    <div className="w-48">
-                      <div className="space-y-1">
-                        <Label className="text-xs text-[var(--neutral-600)]">Boosted commission rate</Label>
-                        <Input type="number" placeholder="15%" className="h-8 text-sm bg-white border-[var(--neutral-200)]" value={comp.commissionRate || ""} onChange={(e) => updateCompensation(comp.type, "commissionRate", Number(e.target.value))} />
-                      </div>
-                    </div>
-                  )}
+        {/* Selected products */}
+        {draft.selectedProducts.length > 0 && (
+          <div className="space-y-2">
+            {draft.selectedProducts.map((product) => (
+              <div
+                key={product.id}
+                className="group flex items-center gap-3 rounded-xl border border-[var(--neutral-200)] bg-white p-3 transition-all hover:border-[var(--brand-300)]"
+              >
+                <img
+                  src={product.image}
+                  alt={product.title}
+                  className="h-12 w-12 rounded-lg object-cover border"
+                  style={{ borderColor: "var(--border)" }}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-[var(--neutral-800)] truncate">
+                    {product.title}
+                  </p>
+                  <p className="text-xs text-[var(--neutral-500)]">
+                    {product.variant} · {product.inventory} in stock
+                  </p>
                 </div>
-              );
-            })}
+                <span className="text-sm font-semibold text-[var(--neutral-700)] shrink-0">
+                  {product.price}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeProduct(product.id)}
+                  className="shrink-0 rounded-lg p-1.5 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-[var(--neutral-100)]"
+                >
+                  <X className="size-3.5 text-[var(--neutral-400)]" />
+                </button>
+              </div>
+            ))}
+
+            {/* Total value summary */}
+            <div className="flex items-center justify-between rounded-lg bg-[var(--brand-0)] px-4 py-2.5 border border-[var(--brand-200)]">
+              <span className="text-xs font-medium text-[var(--brand-700)]">
+                <Package className="inline size-3.5 mr-1" />
+                {draft.selectedProducts.length} product{draft.selectedProducts.length !== 1 ? "s" : ""} selected
+              </span>
+              <span className="text-sm font-bold text-[var(--brand-700)]">
+                Est. value: ${totalValue.toFixed(2)}/creator
+              </span>
+            </div>
           </div>
         )}
+
+        {/* Add products button */}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setPickerOpen(true)}
+          className="w-full gap-2 border-dashed border-[var(--neutral-300)] text-[var(--neutral-600)] hover:border-[var(--brand-400)] hover:text-[var(--brand-700)] hover:bg-[var(--brand-0)]"
+        >
+          <Plus className="size-4" />
+          {draft.selectedProducts.length > 0 ? "Change Products" : "Select Products from Shopify"}
+        </Button>
       </section>
 
       <Separator className="bg-[var(--neutral-200)]" />
@@ -618,6 +724,14 @@ function StepCompensation({
           placeholder={"Geography preference (e.g., US-based, UK-based)\nFollower range (e.g., 1K–10K nano creators)\nContent style (e.g., aesthetic flat-lays, talking-head reviews)\nNiche (e.g., clean beauty, skincare, wellness)\nAudience demographics (e.g., women 18–34)\nPlatform focus (e.g., primarily TikTok creators)"}
         />
       </section>
+
+      {/* Shopify Product Picker Modal */}
+      <ShopifyProductPicker
+        isOpen={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onSelect={handleProductSelect}
+        selectedIds={selectedIds}
+      />
     </div>
   );
 }
@@ -640,7 +754,7 @@ export default function CreateCampaign() {
 
   // Step 2 state
   const [compDraft, setCompDraft] = useState<CompensationDraft>({
-    compensationTypes: [...defaultCompensationTypes],
+    selectedProducts: [],
     creatorDescription: "",
   });
 
@@ -655,13 +769,12 @@ export default function CreateCampaign() {
   };
 
   const handleLaunch = () => {
-    // In real app, would save to store & navigate to campaign detail
     navigate("/campaigns");
   };
 
   const canAdvance = step === 1
     ? briefDraft.brandDescription.trim().length > 0 && briefDraft.campaignDescription.trim().length > 0
-    : compDraft.compensationTypes.some((c) => c.enabled);
+    : compDraft.selectedProducts.length > 0;
 
   return (
     <div className="relative min-h-[calc(100vh-80px)]">
