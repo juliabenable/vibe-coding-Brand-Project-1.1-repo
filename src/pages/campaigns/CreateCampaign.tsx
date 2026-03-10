@@ -21,10 +21,35 @@ import {
   Sparkles,
   ChevronRight,
   Users,
+  Info,
 } from "lucide-react";
 
+// ─── Tooltip helper ───
+function Tooltip({ text }: { text: string }) {
+  const [show, setShow] = useState(false);
+  return (
+    <span className="relative inline-flex">
+      <button
+        type="button"
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        onClick={() => setShow((v) => !v)}
+        className="rounded-full p-0.5 text-[var(--neutral-400)] hover:text-[var(--neutral-600)] transition-colors"
+      >
+        <Info className="size-3.5" />
+      </button>
+      {show && (
+        <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 z-50 w-56 rounded-lg border border-[var(--neutral-200)] bg-white px-3 py-2 text-xs text-[var(--neutral-600)] leading-relaxed shadow-lg">
+          {text}
+          <div className="absolute left-1/2 top-full -translate-x-1/2 -mt-px border-4 border-transparent border-t-white" />
+        </div>
+      )}
+    </span>
+  );
+}
+
 // ─── Step labels ───
-const STEP_LABELS = ["Brief", "Product & Creators", "Preview"];
+const STEP_LABELS = ["Brief", "Product", "Target Creators", "Preview"];
 
 function StepIndicator({
   currentStep,
@@ -100,12 +125,14 @@ function Section({
   icon,
   title,
   subtitle,
+  tooltip,
 }: {
   children: React.ReactNode;
   className?: string;
   icon?: React.ReactNode;
   title?: string;
   subtitle?: string;
+  tooltip?: string;
 }) {
   return (
     <div
@@ -119,8 +146,11 @@ function Section({
               {icon}
             </div>
           )}
-          <div>
-            <h3 className="text-[15px] font-semibold text-[var(--neutral-800)]">{title}</h3>
+          <div className="flex-1">
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-[15px] font-semibold text-[var(--neutral-800)]">{title}</h3>
+              {tooltip && <Tooltip text={tooltip} />}
+            </div>
             {subtitle && <p className="text-xs text-[var(--neutral-400)] mt-0.5">{subtitle}</p>}
           </div>
         </div>
@@ -431,6 +461,7 @@ function StepBrief({
         icon={<Sparkles className="size-4 text-[var(--brand-700)]" />}
         title="About Your Brand"
         subtitle="A short intro so creators understand who you are. 2–3 lines."
+        tooltip="This is shown at the top of the creator brief. Keep it concise — creators skim this to decide if your brand is a fit."
       >
         <textarea
           className="flex min-h-[80px] w-full rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-800)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
@@ -445,6 +476,7 @@ function StepBrief({
         icon={<FileText className="size-4 text-[var(--brand-700)]" />}
         title="About This Campaign"
         subtitle="What should creators know about this specific campaign? 2–3 lines."
+        tooltip="Describe the creative direction, product focus, and what kind of content you're hoping for."
       >
         <textarea
           className="flex min-h-[80px] w-full rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-800)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
@@ -459,6 +491,7 @@ function StepBrief({
         icon={<Check className="size-4 text-[var(--brand-700)]" />}
         title="Platform Requirements"
         subtitle="Content creators must produce. Shown as a checklist in the brief."
+        tooltip="Be specific about platform, format, and length. Creators perform best with clear deliverables."
       >
         <div className="space-y-2 mb-3">
           {draft.platformRequirements.map((req) => (
@@ -493,6 +526,7 @@ function StepBrief({
         icon={<FileText className="size-4 text-[var(--neutral-500)]" />}
         title="Other Requirements"
         subtitle="Additional rules or guidelines for creators."
+        tooltip="Hashtags, tagging, posting timelines, content dos/don'ts — anything else creators need to know."
       >
         <div className="space-y-2 mb-3">
           {draft.otherRequirements.map((req) => (
@@ -527,6 +561,7 @@ function StepBrief({
         icon={<Shield className="size-4 text-[var(--neutral-500)]" />}
         title="Terms & Commitments"
         subtitle="Pre-filled standard terms. Edit to customize."
+        tooltip="These terms are shown to creators before they accept. They cover content review, confidentiality, and usage rights."
       >
         <textarea
           className="flex min-h-[90px] w-full rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-700)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
@@ -664,20 +699,6 @@ function StepCompensation({
         </Button>
       </Section>
 
-      {/* Creator Preferences */}
-      <Section
-        icon={<Users className="size-4 text-[var(--brand-700)]" />}
-        title="Who Are You Looking For?"
-        subtitle="Describe your ideal creator. Be as specific or broad as you'd like."
-      >
-        <textarea
-          className="flex min-h-[130px] w-full rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-800)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
-          value={draft.creatorDescription}
-          onChange={(e) => setDraft((prev) => ({ ...prev, creatorDescription: e.target.value }))}
-          placeholder={"Geography preference (e.g., US-based, UK-based)\nFollower range (e.g., 1K–10K nano creators)\nContent style (e.g., aesthetic flat-lays, talking-head reviews)\nNiche (e.g., clean beauty, skincare, wellness)\nAudience demographics (e.g., women 18–34)\nPlatform focus (e.g., primarily TikTok creators)"}
-        />
-      </Section>
-
       <ShopifyProductPicker
         isOpen={pickerOpen}
         onClose={() => setPickerOpen(false)}
@@ -689,7 +710,36 @@ function StepCompensation({
 }
 
 // ═══════════════════════════════════════════════════
-// STEP 3 — Creator-Facing Preview (Recap)
+// STEP 3 — Target Creators
+// ═══════════════════════════════════════════════════
+function StepTargetCreators({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+}) {
+  return (
+    <div className="mx-auto max-w-2xl space-y-5">
+      <Section
+        icon={<Users className="size-4 text-[var(--brand-700)]" />}
+        title="Target Creators"
+        subtitle="Describe who you're looking for. This helps us match the right creators to your campaign."
+        tooltip="Be as specific or broad as you'd like. Include geography, follower range, content style, niche, audience demographics, and platform preferences."
+      >
+        <textarea
+          className="flex min-h-[180px] w-full rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-800)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={"Geography preference (e.g., US-based, UK-based)\nFollower range (e.g., 1K–10K nano creators)\nContent style (e.g., aesthetic flat-lays, talking-head reviews)\nNiche (e.g., clean beauty, skincare, wellness)\nAudience demographics (e.g., women 18–34)\nPlatform focus (e.g., primarily TikTok creators)"}
+        />
+      </Section>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// STEP 4 — Creator-Facing Preview (Recap)
 // ═══════════════════════════════════════════════════
 function StepPreview({
   brief,
@@ -861,7 +911,7 @@ export default function CreateCampaign() {
     creatorDescription: "",
   });
 
-  const totalSteps = 3;
+  const totalSteps = 4;
 
   const handleNext = () => { if (step < totalSteps) setStep(step + 1); };
   const handleBack = () => { if (step > 1) setStep(step - 1); };
@@ -872,7 +922,7 @@ export default function CreateCampaign() {
       ? briefDraft.brandDescription.trim().length > 0 && briefDraft.campaignDescription.trim().length > 0
       : step === 2
         ? compDraft.selectedProducts.length > 0
-        : true; // Preview step always ready
+        : true; // Steps 3 & 4 always ready
 
   return (
     <div className="relative min-h-[calc(100vh-80px)]">
@@ -886,8 +936,10 @@ export default function CreateCampaign() {
                 {step === 1
                   ? "Set up what creators will see when they're invited."
                   : step === 2
-                    ? "Configure gifting and describe your ideal creators."
-                    : "Review exactly what creators will see."}
+                    ? "Configure gifting and select products to offer."
+                    : step === 3
+                      ? "Describe your ideal creators for this campaign."
+                      : "Review exactly what creators will see."}
               </p>
             </div>
             <Badge className="border-[var(--neutral-200)] bg-white text-[var(--neutral-600)] text-[10px]">
@@ -903,7 +955,8 @@ export default function CreateCampaign() {
       <div className="px-8 py-8 pb-28" style={{ backgroundColor: "var(--neutral-50)" }}>
         {step === 1 && <StepBrief draft={briefDraft} setDraft={setBriefDraft} />}
         {step === 2 && <StepCompensation draft={compDraft} setDraft={setCompDraft} />}
-        {step === 3 && <StepPreview brief={briefDraft} comp={compDraft} />}
+        {step === 3 && <StepTargetCreators value={compDraft.creatorDescription} onChange={(val) => setCompDraft((prev) => ({ ...prev, creatorDescription: val }))} />}
+        {step === 4 && <StepPreview brief={briefDraft} comp={compDraft} />}
       </div>
 
       {/* Footer navigation */}
@@ -940,7 +993,7 @@ export default function CreateCampaign() {
               className="gap-1.5"
               style={{ backgroundColor: "var(--brand-700)", color: "white" }}
             >
-              {step === 2 ? (
+              {step === 3 ? (
                 <>
                   <Eye className="size-3.5" />
                   Preview
