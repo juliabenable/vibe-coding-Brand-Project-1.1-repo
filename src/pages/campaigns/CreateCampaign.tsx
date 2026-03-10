@@ -22,6 +22,7 @@ import {
   ChevronRight,
   Users,
   Info,
+  Pencil,
 } from "lucide-react";
 
 // ─── Tooltip helper ───
@@ -419,6 +420,7 @@ function StepBrief({
 }) {
   const [newPlatReq, setNewPlatReq] = useState("");
   const [newOtherReq, setNewOtherReq] = useState("");
+  const [editingTerms, setEditingTerms] = useState(false);
 
   const addPlatformReq = () => {
     if (!newPlatReq.trim()) return;
@@ -560,15 +562,44 @@ function StepBrief({
       <Section
         icon={<Shield className="size-4 text-[var(--neutral-500)]" />}
         title="Terms & Commitments"
-        subtitle="Pre-filled standard terms. Edit to customize."
+        subtitle="Pre-filled standard terms. Click Edit to customize."
         tooltip="These terms are shown to creators before they accept. They cover content review, confidentiality, and usage rights."
       >
-        <textarea
-          className="flex min-h-[90px] w-full rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-700)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
-          value={draft.terms}
-          onChange={(e) => setDraft((prev) => ({ ...prev, terms: e.target.value }))}
-          placeholder="Enter terms and commitments..."
-        />
+        {editingTerms ? (
+          <div>
+            <textarea
+              className="flex min-h-[90px] w-full rounded-xl border border-[var(--brand-300)] bg-white px-4 py-3 text-sm leading-relaxed text-[var(--neutral-700)] placeholder:text-[var(--neutral-400)] focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
+              value={draft.terms}
+              onChange={(e) => setDraft((prev) => ({ ...prev, terms: e.target.value }))}
+              placeholder="Enter terms and commitments..."
+              autoFocus
+            />
+            <div className="mt-2 flex justify-end">
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => setEditingTerms(false)}
+                style={{ backgroundColor: "var(--brand-700)", color: "white" }}
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="group relative rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3">
+            <p className="text-sm leading-relaxed text-[var(--neutral-700)] pr-16">
+              {draft.terms || "No terms specified."}
+            </p>
+            <button
+              type="button"
+              onClick={() => setEditingTerms(true)}
+              className="absolute top-3 right-3 flex items-center gap-1.5 rounded-lg border border-[var(--neutral-200)] bg-white px-2.5 py-1.5 text-xs font-medium text-[var(--neutral-600)] shadow-sm transition-all hover:border-[var(--brand-300)] hover:text-[var(--brand-700)]"
+            >
+              <Pencil className="size-3" />
+              Edit
+            </button>
+          </div>
+        )}
       </Section>
     </div>
   );
