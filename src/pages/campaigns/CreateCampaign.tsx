@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+// Separator removed – no longer needed
 import {
   ArrowRight,
   ArrowLeft,
@@ -17,10 +17,11 @@ import {
   Package,
   ExternalLink,
   MessageSquare,
-  Calendar,
   Shield,
   Sparkles,
   ChevronRight,
+  Smartphone,
+  Users,
 } from "lucide-react";
 
 // ─── Step labels ───
@@ -36,20 +37,20 @@ function StepIndicator({
   onStepClick: (step: number) => void;
 }) {
   return (
-    <div className="flex items-center justify-center gap-0.5">
+    <div className="flex items-center justify-center gap-1">
       {Array.from({ length: totalSteps }).map((_, i) => {
         const stepNum = i + 1;
         const isComplete = stepNum < currentStep;
         const isCurrent = stepNum === currentStep;
         const isPast = stepNum <= currentStep;
         return (
-          <div key={i} className="flex items-center gap-0.5">
+          <div key={i} className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => {
                 if (stepNum < currentStep) onStepClick(stepNum);
               }}
-              className="flex items-center gap-2 rounded-full px-3 py-1.5 transition-all"
+              className="flex items-center gap-2 rounded-full px-3.5 py-1.5 transition-all duration-200"
               style={{
                 backgroundColor: isCurrent
                   ? "var(--brand-100)"
@@ -60,13 +61,11 @@ function StepIndicator({
               }}
             >
               <div
-                className="flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold transition-all"
+                className="flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold transition-all duration-200"
                 style={{
-                  backgroundColor: isComplete
+                  backgroundColor: isPast
                     ? "var(--brand-700)"
-                    : isCurrent
-                      ? "var(--brand-700)"
-                      : "var(--neutral-200)",
+                    : "var(--neutral-200)",
                   color: isPast ? "white" : "var(--neutral-500)",
                 }}
               >
@@ -99,15 +98,34 @@ function StepIndicator({
 function Section({
   children,
   className = "",
+  icon,
+  title,
+  subtitle,
 }: {
   children: React.ReactNode;
   className?: string;
+  icon?: React.ReactNode;
+  title?: string;
+  subtitle?: string;
 }) {
   return (
     <div
-      className={`rounded-xl border border-[var(--neutral-200)] bg-white p-6 ${className}`}
-      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+      className={`rounded-2xl border border-[var(--neutral-200)] bg-white p-6 transition-shadow hover:shadow-[0_2px_12px_rgba(0,0,0,0.04)] ${className}`}
+      style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}
     >
+      {title && (
+        <div className="flex items-start gap-3 mb-4">
+          {icon && (
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--brand-50,var(--brand-0))]">
+              {icon}
+            </div>
+          )}
+          <div>
+            <h3 className="text-[15px] font-semibold text-[var(--neutral-800)]">{title}</h3>
+            {subtitle && <p className="text-xs text-[var(--neutral-400)] mt-0.5">{subtitle}</p>}
+          </div>
+        </div>
+      )}
       {children}
     </div>
   );
@@ -140,6 +158,7 @@ const DEFAULT_OTHER_REQUIREMENTS: OtherRequirement[] = [
   { id: "or-1", text: "Use campaign hashtag #28Litsea #SummerGlow" },
   { id: "or-2", text: "Tag @28litsea in all posts" },
   { id: "or-3", text: "Show product in use (not just unboxing)" },
+  { id: "or-4", text: "Post as soon as possible" },
 ];
 
 const PREFILLED_TERMS =
@@ -399,7 +418,7 @@ function StepBrief({
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-5">
       {/* Live preview hint */}
       <div className="flex items-center gap-2.5 rounded-xl border border-[var(--brand-200)] bg-[var(--brand-0)] px-4 py-3">
         <Eye className="size-4 text-[var(--brand-700)] shrink-0" />
@@ -409,11 +428,13 @@ function StepBrief({
       </div>
 
       {/* About the Brand */}
-      <Section>
-        <h3 className="text-sm font-bold text-[var(--neutral-800)] mb-1">About Your Brand</h3>
-        <p className="text-xs text-[var(--neutral-400)] mb-3">A short intro so creators understand who you are. 2–3 lines.</p>
+      <Section
+        icon={<Sparkles className="size-4 text-[var(--brand-700)]" />}
+        title="About Your Brand"
+        subtitle="A short intro so creators understand who you are. 2–3 lines."
+      >
         <textarea
-          className="flex min-h-[80px] w-full rounded-lg border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-800)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
+          className="flex min-h-[80px] w-full rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-800)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
           value={draft.brandDescription}
           onChange={(e) => setDraft((prev) => ({ ...prev, brandDescription: e.target.value }))}
           placeholder="Tell creators about your brand in 2–3 sentences..."
@@ -421,11 +442,13 @@ function StepBrief({
       </Section>
 
       {/* About This Campaign */}
-      <Section>
-        <h3 className="text-sm font-bold text-[var(--neutral-800)] mb-1">About This Campaign</h3>
-        <p className="text-xs text-[var(--neutral-400)] mb-3">What should creators know about this specific campaign? 2–3 lines.</p>
+      <Section
+        icon={<FileText className="size-4 text-[var(--brand-700)]" />}
+        title="About This Campaign"
+        subtitle="What should creators know about this specific campaign? 2–3 lines."
+      >
         <textarea
-          className="flex min-h-[80px] w-full rounded-lg border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-800)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
+          className="flex min-h-[80px] w-full rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-800)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
           value={draft.campaignDescription}
           onChange={(e) => setDraft((prev) => ({ ...prev, campaignDescription: e.target.value }))}
           placeholder="Describe the campaign goal, creative direction, and product..."
@@ -433,12 +456,14 @@ function StepBrief({
       </Section>
 
       {/* Platform Requirements */}
-      <Section>
-        <h3 className="text-sm font-bold text-[var(--neutral-800)] mb-1">Platform Requirements</h3>
-        <p className="text-xs text-[var(--neutral-400)] mb-4">Content creators must produce. Shown as a checklist in the brief.</p>
+      <Section
+        icon={<Check className="size-4 text-[var(--brand-700)]" />}
+        title="Platform Requirements"
+        subtitle="Content creators must produce. Shown as a checklist in the brief."
+      >
         <div className="space-y-2 mb-3">
           {draft.platformRequirements.map((req) => (
-            <div key={req.id} className="group flex items-start gap-3 rounded-lg border border-[var(--neutral-150,var(--neutral-200))] bg-[var(--neutral-50)] px-4 py-3 transition-all hover:border-[var(--brand-300)]">
+            <div key={req.id} className="group flex items-start gap-3 rounded-xl border border-[var(--neutral-150,var(--neutral-200))] bg-[var(--neutral-50)] px-4 py-3 transition-all hover:border-[var(--brand-300)]">
               <div className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[var(--brand-700)]">
                 <Check className="size-2.5 text-white" />
               </div>
@@ -450,7 +475,7 @@ function StepBrief({
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex flex-1 items-center gap-2 rounded-lg border border-dashed border-[var(--neutral-300)] px-4 py-2.5">
+          <div className="flex flex-1 items-center gap-2 rounded-xl border border-dashed border-[var(--neutral-300)] px-4 py-2.5">
             <Plus className="size-4 text-[var(--neutral-400)]" />
             <input
               className="flex-1 bg-transparent text-sm text-[var(--neutral-700)] placeholder:text-[var(--neutral-400)] outline-none"
@@ -465,12 +490,14 @@ function StepBrief({
       </Section>
 
       {/* Other Requirements */}
-      <Section>
-        <h3 className="text-sm font-bold text-[var(--neutral-800)] mb-1">Other Requirements</h3>
-        <p className="text-xs text-[var(--neutral-400)] mb-4">Additional rules or guidelines for creators.</p>
+      <Section
+        icon={<FileText className="size-4 text-[var(--neutral-500)]" />}
+        title="Other Requirements"
+        subtitle="Additional rules or guidelines for creators."
+      >
         <div className="space-y-2 mb-3">
           {draft.otherRequirements.map((req) => (
-            <div key={req.id} className="group flex items-start gap-3 rounded-lg border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 transition-all hover:border-[var(--brand-300)]">
+            <div key={req.id} className="group flex items-start gap-3 rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 transition-all hover:border-[var(--brand-300)]">
               <div className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[var(--brand-700)]">
                 <Check className="size-2.5 text-white" />
               </div>
@@ -482,7 +509,7 @@ function StepBrief({
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex flex-1 items-center gap-2 rounded-lg border border-dashed border-[var(--neutral-300)] px-4 py-2.5">
+          <div className="flex flex-1 items-center gap-2 rounded-xl border border-dashed border-[var(--neutral-300)] px-4 py-2.5">
             <Plus className="size-4 text-[var(--neutral-400)]" />
             <input
               className="flex-1 bg-transparent text-sm text-[var(--neutral-700)] placeholder:text-[var(--neutral-400)] outline-none"
@@ -497,11 +524,13 @@ function StepBrief({
       </Section>
 
       {/* Terms & Commitments */}
-      <Section>
-        <h3 className="text-sm font-bold text-[var(--neutral-800)] mb-1">Terms & Commitments</h3>
-        <p className="text-xs text-[var(--neutral-400)] mb-3">Pre-filled standard terms. Edit to customize.</p>
+      <Section
+        icon={<Shield className="size-4 text-[var(--neutral-500)]" />}
+        title="Terms & Commitments"
+        subtitle="Pre-filled standard terms. Edit to customize."
+      >
         <textarea
-          className="flex min-h-[90px] w-full rounded-lg border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-700)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
+          className="flex min-h-[90px] w-full rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-700)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
           value={draft.terms}
           onChange={(e) => setDraft((prev) => ({ ...prev, terms: e.target.value }))}
           placeholder="Enter terms and commitments..."
@@ -548,38 +577,44 @@ function StepCompensation({
   }, 0);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      {/* Gifted Product Section */}
-      <Section>
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-100)]">
-            <Gift className="size-5 text-[var(--brand-700)]" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-[var(--neutral-800)]">Gifted Product</h3>
-            <p className="text-xs text-[var(--neutral-400)]">Select products from your Shopify store to gift to creators.</p>
-          </div>
+    <div className="mx-auto max-w-2xl space-y-5">
+      {/* Gifting Instructions — Prominent callout above everything */}
+      <Section
+        icon={<MessageSquare className="size-4 text-[var(--brand-700)]" />}
+        title="Gifting Instructions"
+        subtitle="Tell creators how to choose their product. This appears above the product selection."
+      >
+        <textarea
+          className="flex min-h-[70px] w-full rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-800)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
+          value={draft.giftingInstructions}
+          onChange={(e) => setDraft((prev) => ({ ...prev, giftingInstructions: e.target.value }))}
+          placeholder="e.g., Choose 1 product from the selection below, Pick your two favorites..."
+        />
+        <div className="mt-3 flex flex-wrap gap-2">
+          {["Choose 1 product", "Pick your 2 favorites", "Select any product you'd like to feature"].map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              onClick={() => setDraft((prev) => ({ ...prev, giftingInstructions: suggestion + " from the selection below." }))}
+              className="rounded-lg border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-3 py-1.5 text-xs text-[var(--neutral-600)] transition-all hover:border-[var(--brand-300)] hover:bg-[var(--brand-0)] hover:text-[var(--brand-700)]"
+            >
+              {suggestion}
+            </button>
+          ))}
         </div>
+      </Section>
 
+      {/* Gifted Product Section */}
+      <Section
+        icon={<Gift className="size-4 text-[var(--brand-700)]" />}
+        title="Gifted Product"
+        subtitle="Select products from your Shopify store to gift to creators."
+      >
         {/* Shopify connection status */}
-        <div className="flex items-center gap-2 rounded-lg border border-[var(--green-300)] bg-[var(--green-100)] px-4 py-2.5 mb-5">
+        <div className="flex items-center gap-2 rounded-xl border border-[var(--green-300)] bg-[var(--green-100)] px-4 py-2.5 mb-5">
           <ShoppingBag className="size-4 text-[var(--green-700)]" />
           <span className="text-sm font-medium text-[var(--green-700)]">Connected to Shopify</span>
           <span className="text-xs text-[var(--green-600)]">· 28litsea.myshopify.com</span>
-        </div>
-
-        {/* Gifting Instructions */}
-        <div className="mb-5">
-          <div className="flex items-center gap-2 mb-2">
-            <MessageSquare className="size-3.5 text-[var(--neutral-500)]" />
-            <h4 className="text-xs font-semibold text-[var(--neutral-600)] uppercase tracking-wide">Instructions for Creators</h4>
-          </div>
-          <textarea
-            className="flex min-h-[60px] w-full rounded-lg border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-800)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
-            value={draft.giftingInstructions}
-            onChange={(e) => setDraft((prev) => ({ ...prev, giftingInstructions: e.target.value }))}
-            placeholder="e.g., Choose 1 product from the selection, Pick your two favorites..."
-          />
         </div>
 
         {/* Selected products */}
@@ -606,7 +641,7 @@ function StepCompensation({
               </div>
             ))}
 
-            <div className="flex items-center justify-between rounded-lg bg-[var(--brand-0)] px-4 py-2.5 border border-[var(--brand-200)]">
+            <div className="flex items-center justify-between rounded-xl bg-[var(--brand-0)] px-4 py-2.5 border border-[var(--brand-200)]">
               <span className="text-xs font-medium text-[var(--brand-700)]">
                 <Package className="inline size-3.5 mr-1" />
                 {draft.selectedProducts.length} product{draft.selectedProducts.length !== 1 ? "s" : ""} selected
@@ -630,11 +665,13 @@ function StepCompensation({
       </Section>
 
       {/* Creator Preferences */}
-      <Section>
-        <h3 className="text-sm font-bold text-[var(--neutral-800)] mb-1">Who Are You Looking For?</h3>
-        <p className="text-xs text-[var(--neutral-400)] mb-3">Describe your ideal creator. Be as specific or broad as you'd like.</p>
+      <Section
+        icon={<Users className="size-4 text-[var(--brand-700)]" />}
+        title="Who Are You Looking For?"
+        subtitle="Describe your ideal creator. Be as specific or broad as you'd like."
+      >
         <textarea
-          className="flex min-h-[130px] w-full rounded-lg border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-800)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
+          className="flex min-h-[130px] w-full rounded-xl border border-[var(--neutral-200)] bg-[var(--neutral-50)] px-4 py-3 text-sm leading-relaxed text-[var(--neutral-800)] placeholder:text-[var(--neutral-400)] focus:bg-white focus:border-[var(--brand-700)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-700)] transition-colors"
           value={draft.creatorDescription}
           onChange={(e) => setDraft((prev) => ({ ...prev, creatorDescription: e.target.value }))}
           placeholder={"Geography preference (e.g., US-based, UK-based)\nFollower range (e.g., 1K–10K nano creators)\nContent style (e.g., aesthetic flat-lays, talking-head reviews)\nNiche (e.g., clean beauty, skincare, wellness)\nAudience demographics (e.g., women 18–34)\nPlatform focus (e.g., primarily TikTok creators)"}
@@ -652,7 +689,7 @@ function StepCompensation({
 }
 
 // ═══════════════════════════════════════════════════
-// STEP 3 — Creator-Facing Preview
+// STEP 3 — Creator-Facing Preview (Recap)
 // ═══════════════════════════════════════════════════
 function StepPreview({
   brief,
@@ -668,161 +705,169 @@ function StepPreview({
 
   return (
     <div className="mx-auto max-w-xl">
-      {/* Preview frame label */}
-      <div className="flex items-center justify-center gap-2 mb-4">
-        <Eye className="size-4 text-[var(--brand-700)]" />
-        <span className="text-xs font-semibold uppercase tracking-wider text-[var(--brand-700)]">
-          Creator Preview — This is what they'll see
+      {/* Preview banner */}
+      <div className="flex items-center justify-center gap-2 mb-5 rounded-xl border border-dashed border-[var(--brand-300)] bg-[var(--brand-0)] px-4 py-3">
+        <Smartphone className="size-4 text-[var(--brand-700)]" />
+        <span className="text-xs font-semibold text-[var(--brand-700)]">
+          Creator Preview — This is exactly what creators will see
         </span>
       </div>
 
-      {/* The "card" that simulates what the creator sees */}
-      <div
-        className="rounded-2xl border-2 border-[var(--neutral-200)] overflow-hidden"
-        style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}
-      >
-        {/* Brand header */}
-        <div className="bg-gradient-to-br from-[var(--brand-700)] to-[var(--brand-600)] px-6 py-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white font-bold text-sm">
-              28
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-white">Summer Glow Collection Launch</h2>
-              <p className="text-xs text-white/70">by 28 Litsea</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white px-6 py-5 space-y-5">
-          {/* Campaign description */}
-          <div>
-            <p className="text-sm text-[var(--neutral-700)] leading-relaxed">
-              {brief.campaignDescription || "No campaign description provided."}
-            </p>
+      {/* ── Phone-style frame ── */}
+      <div className="relative mx-auto max-w-[420px]">
+        {/* Device frame */}
+        <div
+          className="rounded-[28px] border-2 border-[var(--neutral-300)] bg-[var(--neutral-100)] p-2 overflow-hidden"
+          style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)" }}
+        >
+          {/* Notch bar */}
+          <div className="flex items-center justify-center py-1.5 bg-white rounded-t-[22px]">
+            <div className="h-[5px] w-[80px] rounded-full bg-[var(--neutral-200)]" />
           </div>
 
-          <Separator className="bg-[var(--neutral-100)]" />
-
-          {/* Compensation */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Gift className="size-4 text-[var(--brand-700)]" />
-              <h4 className="text-xs font-bold uppercase tracking-wide text-[var(--neutral-800)]">Compensation</h4>
+          {/* Inner screen */}
+          <div className="bg-white rounded-b-[22px] overflow-hidden">
+            {/* Brand header */}
+            <div
+              className="px-5 pt-6 pb-5"
+              style={{ background: "linear-gradient(135deg, var(--brand-700) 0%, var(--brand-600) 100%)" }}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white font-bold text-sm ring-2 ring-white/10">
+                  28
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium text-white/60 uppercase tracking-wider">Campaign Invite</p>
+                  <h2 className="text-[15px] font-bold text-white leading-tight">Summer Glow Collection Launch</h2>
+                </div>
+              </div>
+              <p className="text-xs text-white/80 leading-relaxed">by 28 Litsea</p>
             </div>
-            <div className="rounded-xl bg-[var(--brand-0)] border border-[var(--brand-200)] p-4">
-              <p className="text-sm font-semibold text-[var(--brand-700)] mb-1">
-                Free product (valued at ${totalValue > 0 ? totalValue.toFixed(0) : "—"})
-              </p>
-              {comp.giftingInstructions && (
-                <p className="text-xs text-[var(--neutral-600)] leading-relaxed">
-                  {comp.giftingInstructions}
+
+            <div className="px-5 py-5 space-y-5">
+              {/* About the brand */}
+              {brief.brandDescription && (
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--neutral-400)] mb-1.5">About the Brand</p>
+                  <p className="text-[13px] text-[var(--neutral-600)] leading-relaxed">
+                    {brief.brandDescription}
+                  </p>
+                </div>
+              )}
+
+              <div className="h-px bg-[var(--neutral-100)]" />
+
+              {/* Campaign details */}
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--neutral-400)] mb-1.5">About This Campaign</p>
+                <p className="text-[13px] text-[var(--neutral-700)] leading-relaxed">
+                  {brief.campaignDescription || "No campaign description provided."}
                 </p>
-              )}
-              {comp.selectedProducts.length > 0 && (
-                <div className="mt-3 flex gap-2 overflow-x-auto">
-                  {comp.selectedProducts.map((p) => (
-                    <div key={p.id} className="flex items-center gap-2 rounded-lg bg-white border border-[var(--neutral-200)] px-3 py-2 shrink-0">
-                      <img src={p.image} alt={p.title} className="h-8 w-8 rounded-md object-cover" />
-                      <div>
-                        <p className="text-xs font-medium text-[var(--neutral-800)]">{p.title}</p>
-                        <p className="text-[10px] text-[var(--neutral-500)]">{p.price}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+              </div>
 
-          <Separator className="bg-[var(--neutral-100)]" />
+              <div className="h-px bg-[var(--neutral-100)]" />
 
-          {/* Content Requirements */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="size-4 text-[var(--brand-700)]" />
-              <h4 className="text-xs font-bold uppercase tracking-wide text-[var(--neutral-800)]">Content Requirements</h4>
-            </div>
-            <div className="space-y-2">
-              {brief.platformRequirements.map((req) => (
-                <div key={req.id} className="flex items-start gap-2.5">
-                  <div className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[var(--brand-100)]">
-                    <Check className="size-2.5 text-[var(--brand-700)]" />
-                  </div>
-                  <span className="text-sm text-[var(--neutral-700)] leading-relaxed">{req.text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Other Requirements */}
-          {brief.otherRequirements.length > 0 && (
-            <>
-              <Separator className="bg-[var(--neutral-100)]" />
+              {/* Compensation / Gifting */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <FileText className="size-4 text-[var(--neutral-500)]" />
-                  <h4 className="text-xs font-bold uppercase tracking-wide text-[var(--neutral-800)]">Other Requirements</h4>
+                  <Gift className="size-3.5 text-[var(--brand-700)]" />
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--neutral-400)]">Compensation</p>
                 </div>
-                <div className="space-y-2">
-                  {brief.otherRequirements.map((req) => (
+                <div className="rounded-xl bg-gradient-to-br from-[var(--brand-0)] to-[var(--brand-100)] border border-[var(--brand-200)] p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[13px] font-semibold text-[var(--brand-700)]">
+                      Free product gifting
+                    </p>
+                    <Badge className="border-0 bg-[var(--brand-200)] text-[var(--brand-700)] text-[10px]">
+                      ~${totalValue > 0 ? totalValue.toFixed(0) : "—"} value
+                    </Badge>
+                  </div>
+                  {comp.giftingInstructions && (
+                    <p className="text-xs text-[var(--neutral-600)] leading-relaxed mb-3">
+                      {comp.giftingInstructions}
+                    </p>
+                  )}
+                  {comp.selectedProducts.length > 0 && (
+                    <div className="space-y-2">
+                      {comp.selectedProducts.map((p) => (
+                        <div key={p.id} className="flex items-center gap-3 rounded-lg bg-white border border-[var(--neutral-200)] px-3 py-2.5">
+                          <img src={p.image} alt={p.title} className="h-10 w-10 rounded-lg object-cover" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-[var(--neutral-800)] truncate">{p.title}</p>
+                            <p className="text-[10px] text-[var(--neutral-500)]">{p.variant}</p>
+                          </div>
+                          <span className="text-xs font-semibold text-[var(--neutral-700)]">{p.price}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="h-px bg-[var(--neutral-100)]" />
+
+              {/* Content Requirements */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="size-3.5 text-[var(--brand-700)]" />
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--neutral-400)]">Content Requirements</p>
+                </div>
+                <div className="space-y-2.5">
+                  {brief.platformRequirements.map((req) => (
                     <div key={req.id} className="flex items-start gap-2.5">
-                      <div className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[var(--neutral-100)]">
-                        <Check className="size-2.5 text-[var(--neutral-500)]" />
+                      <div className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[var(--brand-100)]">
+                        <Check className="size-2.5 text-[var(--brand-700)]" />
                       </div>
-                      <span className="text-sm text-[var(--neutral-600)] leading-relaxed">{req.text}</span>
+                      <span className="text-[13px] text-[var(--neutral-700)] leading-relaxed">{req.text}</span>
                     </div>
                   ))}
                 </div>
               </div>
-            </>
-          )}
 
-          <Separator className="bg-[var(--neutral-100)]" />
+              {/* Other Requirements */}
+              {brief.otherRequirements.length > 0 && (
+                <>
+                  <div className="h-px bg-[var(--neutral-100)]" />
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <FileText className="size-3.5 text-[var(--neutral-500)]" />
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--neutral-400)]">Other Requirements</p>
+                    </div>
+                    <div className="space-y-2.5">
+                      {brief.otherRequirements.map((req) => (
+                        <div key={req.id} className="flex items-start gap-2.5">
+                          <div className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[var(--neutral-100)]">
+                            <Check className="size-2.5 text-[var(--neutral-500)]" />
+                          </div>
+                          <span className="text-[13px] text-[var(--neutral-600)] leading-relaxed">{req.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
 
-          {/* Timeline */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar className="size-4 text-[var(--neutral-500)]" />
-              <h4 className="text-xs font-bold uppercase tracking-wide text-[var(--neutral-800)]">Timeline</h4>
-            </div>
-            <div className="flex gap-4">
+              <div className="h-px bg-[var(--neutral-100)]" />
+
+              {/* Terms */}
               <div>
-                <p className="text-[10px] text-[var(--neutral-400)] uppercase tracking-wide">Content Due</p>
-                <p className="text-sm font-medium text-[var(--neutral-700)]">Mar 20, 2026</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-[var(--neutral-400)] uppercase tracking-wide">Posting Window</p>
-                <p className="text-sm font-medium text-[var(--neutral-700)]">Mar 25 – Mar 31, 2026</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="size-3.5 text-[var(--neutral-500)]" />
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--neutral-400)]">Terms & Commitments</p>
+                </div>
+                <p className="text-[11px] text-[var(--neutral-500)] leading-relaxed">
+                  {brief.terms || "No terms specified."}
+                </p>
               </div>
             </div>
-          </div>
 
-          <Separator className="bg-[var(--neutral-100)]" />
-
-          {/* Terms */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Shield className="size-4 text-[var(--neutral-500)]" />
-              <h4 className="text-xs font-bold uppercase tracking-wide text-[var(--neutral-800)]">Terms & Commitments</h4>
+            {/* Footer */}
+            <div className="border-t border-[var(--neutral-100)] bg-white px-5 py-3">
+              <p className="text-center text-[10px] text-[var(--neutral-400)]">
+                Questions? Email collabs@benable.com
+              </p>
             </div>
-            <p className="text-xs text-[var(--neutral-500)] leading-relaxed">
-              {brief.terms || "No terms specified."}
-            </p>
           </div>
-        </div>
-
-        {/* Footer CTA (non-functional, just the preview) */}
-        <div className="border-t border-[var(--neutral-200)] bg-[var(--neutral-50)] px-6 py-4">
-          <div
-            className="w-full rounded-xl py-3 text-center text-sm font-semibold text-white"
-            style={{ backgroundColor: "var(--brand-700)" }}
-          >
-            Accept Campaign
-          </div>
-          <p className="mt-2 text-center text-[10px] text-[var(--neutral-400)]">
-            Questions? Email collabs@benable.com
-          </p>
         </div>
       </div>
     </div>
@@ -872,7 +917,11 @@ export default function CreateCampaign() {
             <div>
               <h1 className="text-lg font-bold text-[var(--neutral-800)]">Create Campaign Brief</h1>
               <p className="text-xs text-[var(--neutral-500)]">
-                Set up what creators will see when they're invited.
+                {step === 1
+                  ? "Set up what creators will see when they're invited."
+                  : step === 2
+                    ? "Configure gifting and describe your ideal creators."
+                    : "Review exactly what creators will see."}
               </p>
             </div>
             <Badge className="border-[var(--neutral-200)] bg-white text-[var(--neutral-600)] text-[10px]">
@@ -908,9 +957,9 @@ export default function CreateCampaign() {
             {Array.from({ length: totalSteps }).map((_, i) => (
               <div
                 key={i}
-                className="h-1.5 rounded-full transition-all"
+                className="h-1.5 rounded-full transition-all duration-300"
                 style={{
-                  width: i + 1 === step ? 24 : 8,
+                  width: i + 1 === step ? 28 : 8,
                   backgroundColor: i + 1 <= step ? "var(--brand-700)" : "var(--neutral-200)",
                 }}
               />
@@ -925,8 +974,17 @@ export default function CreateCampaign() {
               className="gap-1.5"
               style={{ backgroundColor: "var(--brand-700)", color: "white" }}
             >
-              {step === 2 ? "Preview" : "Continue"}
-              <ArrowRight className="size-3.5" />
+              {step === 2 ? (
+                <>
+                  <Eye className="size-3.5" />
+                  Preview
+                </>
+              ) : (
+                <>
+                  Continue
+                  <ArrowRight className="size-3.5" />
+                </>
+              )}
             </Button>
           ) : (
             <Button
